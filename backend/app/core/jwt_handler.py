@@ -5,7 +5,7 @@ from app.core.config import settings
 def create_access_token(data: dict):
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(
-        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        minutes=settings.access_token_expire_minutes
     )
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
+    return jwt.encode(to_encode, settings.jwt_secret, algorithm=settings.jwt_algorithm)

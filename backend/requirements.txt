@@ -10,3 +10,4 @@ scikit-learn
 pandas
 numpy
 python-multipart
+pydantic-settings

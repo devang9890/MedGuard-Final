@@ -4,7 +4,7 @@ from app.services.supplier_service import (
     add_supplier,
     verify_supplier,
     blacklist_supplier,
-    get_suppliers
+    get_all_suppliers
 )
 
 router = APIRouter()
@@ -23,4 +23,4 @@ async def blacklist(supplier_id: str):
 
 @router.get("/all")
 async def list_suppliers():
-    return await get_suppliers()
+    return await get_all_suppliers()

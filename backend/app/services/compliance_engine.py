@@ -1,6 +1,8 @@
 from datetime import datetime
-from app.db.mongodb import db
+from app.db.mongodb import get_collection
 from bson import ObjectId
+
+supplier_collection = get_collection("suppliers")
 
 
 async def run_compliance_check(supply):
@@ -13,7 +15,7 @@ async def run_compliance_check(supply):
         flags.append("EXPIRED")
 
     # 2️⃣ Supplier checks
-    supplier = await db.suppliers.find_one(
+    supplier = await supplier_collection.find_one(
         {"_id": ObjectId(supply["supplier_id"])}
     )
 

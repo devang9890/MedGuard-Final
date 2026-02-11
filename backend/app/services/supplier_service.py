@@ -1,35 +1,42 @@
-from app.db.mongodb import db
-from datetime import datetime
+from bson import ObjectId
+from app.db.mongodb import get_collection
+from app.schemas.supplier_schema import SupplierCreate
 
-async def add_supplier(data):
-    supplier = data.dict()
-    supplier["verified"] = False
-    supplier["blacklisted"] = False
-    supplier["created_at"] = datetime.utcnow()
+supplier_collection = get_collection("suppliers")
 
-    result = await db.suppliers.insert_one(supplier)
-    return {"message": "Supplier added", "id": str(result.inserted_id)}
+async def add_supplier(supplier_data: SupplierCreate):
+    supplier_dict = supplier_data.model_dump()
+    supplier_dict["is_verified"] = False
+    supplier_dict["is_blacklisted"] = False
+    result = await supplier_collection.insert_one(supplier_dict)
+    new_supplier = await supplier_collection.find_one({"_id": result.inserted_id})
+    new_supplier["id"] = str(new_supplier["_id"])
+    return new_supplier
 
-
-async def verify_supplier(supplier_id):
-    await db.suppliers.update_one(
-        {"_id": supplier_id},
-        {"$set": {"verified": True}}
+async def verify_supplier(supplier_id: str):
+    await supplier_collection.update_one(
+        {"_id": ObjectId(supplier_id)},
+        {"$set": {"is_verified": True, "is_blacklisted": False}}
     )
-    return {"message": "Supplier verified"}
+    updated_supplier = await supplier_collection.find_one({"_id": ObjectId(supplier_id)})
+    if updated_supplier:
+        updated_supplier["id"] = str(updated_supplier["_id"])
+    return updated_supplier
 
-
-async def blacklist_supplier(supplier_id):
-    await db.suppliers.update_one(
-        {"_id": supplier_id},
-        {"$set": {"blacklisted": True}}
+async def blacklist_supplier(supplier_id: str):
+    await supplier_collection.update_one(
+        {"_id": ObjectId(supplier_id)},
+        {"$set": {"is_blacklisted": True, "is_verified": False}}
     )
-    return {"message": "Supplier blacklisted"}
+    updated_supplier = await supplier_collection.find_one({"_id": ObjectId(supplier_id)})
+    if updated_supplier:
+        updated_supplier["id"] = str(updated_supplier["_id"])
+    return updated_supplier
 
-
-async def get_suppliers():
+async def get_all_suppliers():
     suppliers = []
-    async for s in db.suppliers.find():
-        s["_id"] = str(s["_id"])
-        suppliers.append(s)
+    cursor = supplier_collection.find({})
+    async for supplier in cursor:
+        supplier["id"] = str(supplier["_id"])
+        suppliers.append(supplier)
     return suppliers

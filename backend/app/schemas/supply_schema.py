@@ -1,10 +1,18 @@
 from pydantic import BaseModel
-from datetime import datetime
+from typing import List
 
-class SupplyCreate(BaseModel):
+class SupplyItem(BaseModel):
     medicine_id: str
-    supplier_id: str
-    batch_number: str
-    expiry_date: datetime
-    temperature: float
     quantity: int
+    location: str
+
+class SupplyIntake(BaseModel):
+    supplier_id: str
+    items: List[SupplyItem]
+
+class Supply(SupplyIntake):
+    id: str
+    timestamp: str
+
+    class Config:
+        from_attributes = True
