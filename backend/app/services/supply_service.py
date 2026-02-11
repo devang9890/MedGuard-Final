@@ -3,6 +3,7 @@ from datetime import datetime
 from bson import ObjectId
 from app.services.compliance_engine import run_compliance_check
 from app.services.alert_service import create_alert
+from app.services.fake_detection_engine import detect_fake_medicine
 
 async def intake_supply(supply_data):
     supply = supply_data.dict()
@@ -11,23 +12,29 @@ async def intake_supply(supply_data):
     supply["supplier_id"] = ObjectId(supply["supplier_id"])
     supply["created_at"] = datetime.utcnow()
 
+    # compliance check
     status, flags = await run_compliance_check(supply)
 
+    # fake detection
+    fake_verdict, fake_flags = await detect_fake_medicine(supply)
+
     supply["compliance_status"] = status
-    supply["risk_flags"] = flags
+    supply["risk_flags"] = flags + fake_flags
+    supply["fake_status"] = fake_verdict
 
     result = await db.supplies.insert_one(supply)
     supply_id = str(result.inserted_id)
 
     # 🚨 AUTO ALERT GENERATION
-    for flag in flags:
+    for flag in supply["risk_flags"]:
         severity = "HIGH" if status == "REJECTED" else "MEDIUM"
         await create_alert(supply_id, flag, severity)
 
     return {
         "message": "Supply recorded",
-        "status": status,
-        "flags": flags,
+        "compliance_status": status,
+        "fake_status": fake_verdict,
+        "flags": supply["risk_flags"],
         "id": supply_id
     }
 

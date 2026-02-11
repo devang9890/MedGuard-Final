@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import auth_routes
 from app.api.routes.supplier_routes import router as supplier_router
 from app.api.routes.medicine_routes import router as medicine_router
@@ -6,6 +7,14 @@ from app.api.routes.supply_routes import router as supply_router
 from app.api.routes.alerts_routes import router as alerts_router
 
 app = FastAPI(title="MedGuard AI Backend")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.include_router(supplier_router, prefix="/supplier", tags=["Supplier"])
 
 @app.get("/")

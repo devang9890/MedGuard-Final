@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+.map-shell {
+	background: #ffffff;
+	border: 1px solid #e5e7eb;
+	border-radius: 16px;
+	box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+	overflow: hidden;
+}
+
+.leaflet-container {
+	width: 100%;
+}
+
+.risk-marker {
+	width: 18px;
+	height: 18px;
+	border-radius: 9999px;
+	border: 2px solid #ffffff;
+	box-shadow: 0 6px 16px rgba(15, 23, 42, 0.35);
+}
+
+.risk-marker--low {
+	background: #16a34a;
+}
+
+.risk-marker--medium {
+	background: #f97316;
+}
+
+.risk-marker--high {
+	background: #dc2626;
+}
