@@ -13,7 +13,7 @@ async def add_medicine(data):
 
 async def get_medicines():
     medicines = []
-    async for m in medicine_collection.find():
+    async for m in medicine_collection.find({"is_deleted": {"$ne": True}}):
         m["_id"] = str(m["_id"])
         medicines.append(m)
     return medicines

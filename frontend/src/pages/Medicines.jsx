@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
+import RecycleBin from "../components/RecycleBin";
+import API from "../api/axios";
 import { getMedicines, addMedicine } from "../api/medicineApi";
 
 export default function Medicines() {
   const [medicines, setMedicines] = useState([]);
+  const [recycleBinOpen, setRecycleBinOpen] = useState(false);
   const [form, setForm] = useState({
     name: "",
     category: "",
@@ -25,9 +28,26 @@ export default function Medicines() {
     fetchMedicines();
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm("Move to recycle bin?")) return;
+    try {
+      await API.delete(`/medicine/${id}`);
+      fetchMedicines();
+    } catch (err) {
+      console.error("Delete failed:", err);
+    }
+  };
+
   return (
     <Layout>
       <h1 className="text-2xl font-bold mb-6">Medicine Management</h1>
+
+      <button
+        onClick={() => setRecycleBinOpen(true)}
+        className="mb-4 bg-gray-600 text-white px-4 py-2 rounded"
+      >
+        ♻ Recycle Bin
+      </button>
 
       <div className="bg-white p-4 rounded shadow mb-6">
         <h2 className="font-semibold mb-3">Add Medicine</h2>
@@ -74,6 +94,7 @@ export default function Medicines() {
               <th className="p-2">Name</th>
               <th>Category</th>
               <th>Manufacturer</th>
+              <th>Actions</th>
             </tr>
           </thead>
 
@@ -83,11 +104,28 @@ export default function Medicines() {
                 <td className="p-2">{m.name}</td>
                 <td>{m.category}</td>
                 <td>{m.manufacturer}</td>
+                <td className="p-2">
+                  <button
+                    onClick={() => handleDelete(m._id)}
+                    className="bg-gray-700 text-white px-3 py-1 rounded"
+                  >
+                    🗑
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      <RecycleBin
+        module="medicine"
+        open={recycleBinOpen}
+        onClose={() => {
+          setRecycleBinOpen(false);
+          fetchMedicines();
+        }}
+      />
     </Layout>
   );
 }

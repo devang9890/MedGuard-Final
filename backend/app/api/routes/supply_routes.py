@@ -2,6 +2,12 @@ from fastapi import APIRouter, HTTPException
 from typing import List
 from app.schemas.supply_schema import SupplyIntake, Supply
 from app.services.supply_service import intake_supply, list_supplies, get_supply_by_id
+from app.services.recycle_service import (
+    soft_delete,
+    restore,
+    permanent_delete,
+    get_deleted
+)
 from bson import ObjectId
 
 router = APIRouter()
@@ -36,3 +42,23 @@ async def get_supply(supply_id: str):
         raise HTTPException(status_code=404, detail="Supply not found")
     
     return supply
+
+
+@router.delete("/{supply_id}")
+async def delete_supply(supply_id: str):
+    return await soft_delete("supplies", supply_id)
+
+
+@router.get("/recycle/bin")
+async def recycle_bin():
+    return await get_deleted("supplies")
+
+
+@router.post("/restore/{supply_id}")
+async def restore_supply(supply_id: str):
+    return await restore("supplies", supply_id)
+
+
+@router.delete("/permanent/{supply_id}")
+async def permanent_delete_supply(supply_id: str):
+    return await permanent_delete("supplies", supply_id)

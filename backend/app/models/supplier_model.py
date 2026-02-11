@@ -11,4 +11,7 @@ class Supplier(BaseModel):
     verified: bool = False
     blacklisted: bool = False
 
+    is_deleted: bool = False
+    deleted_at: Optional[datetime] = None
+
     created_at: datetime = datetime.utcnow()

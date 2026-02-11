@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 from datetime import datetime
 
 class Supply(BaseModel):
@@ -13,5 +14,8 @@ class Supply(BaseModel):
 
     compliance_status: str = "PENDING"
     risk_flags: list[str] = []
+
+    is_deleted: bool = False
+    deleted_at: Optional[datetime] = None
 
     created_at: datetime = datetime.utcnow()

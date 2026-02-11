@@ -38,7 +38,7 @@ async def blacklist_supplier(supplier_id: str):
 
 async def get_all_suppliers():
     suppliers = []
-    cursor = supplier_collection.find({})
+    cursor = supplier_collection.find({"is_deleted": {"$ne": True}})
     async for supplier in cursor:
         supplier["_id"] = str(supplier["_id"])
         supplier["id"] = supplier["_id"]

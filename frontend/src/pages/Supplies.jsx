@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Layout from "../components/Layout";
+import RecycleBin from "../components/RecycleBin";
+import API from "../api/axios";
 import { addSupply, getSupplies } from "../api/supplyApi";
 import { getSuppliers } from "../api/supplierApi";
 import { getMedicines } from "../api/medicineApi";
@@ -9,6 +11,7 @@ export default function Supplies() {
 	const [medicines, setMedicines] = useState([]);
 	const [result, setResult] = useState(null);
 	const [supplies, setSupplies] = useState([]);
+	const [recycleBinOpen, setRecycleBinOpen] = useState(false);
 
 	const [form, setForm] = useState({
 		medicineId: "",
@@ -47,6 +50,17 @@ export default function Supplies() {
 		setSupplies(suppliesRes.data);
 	};
 
+	const handleDelete = async (id) => {
+		if (!window.confirm("Move to recycle bin?")) return;
+		try {
+			await API.delete(`/supply/${id}`);
+			const suppliesRes = await getSupplies();
+			setSupplies(suppliesRes.data);
+		} catch (err) {
+			console.error("Delete failed:", err);
+		}
+	};
+
 	const supplierMap = new Map(
 		suppliers.map((supplier) => [supplier._id || supplier.id, supplier])
 	);
@@ -54,6 +68,13 @@ export default function Supplies() {
 	return (
 		<Layout>
 			<h1 className="text-2xl font-bold mb-6">Supply Entry</h1>
+
+			<button
+				onClick={() => setRecycleBinOpen(true)}
+				className="mb-4 bg-gray-600 text-white px-4 py-2 rounded"
+			>
+				♻ Recycle Bin
+			</button>
 
 			<div className="bg-white p-6 rounded shadow">
 				<div className="grid grid-cols-3 gap-4">
@@ -133,6 +154,7 @@ export default function Supplies() {
 							<th>Compliance</th>
 							<th>Fake Status</th>
 							<th>Risk Flags</th>
+							<th>Actions</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -151,12 +173,29 @@ export default function Supplies() {
 										<td>{supply.compliance_status}</td>
 										<td>{supply.fake_status || "-"}</td>
 										<td>{(supply.risk_flags || []).join(", ") || "-"}</td>
+										<td className="p-2">
+											<button
+												onClick={() => handleDelete(supply._id || supply.id)}
+												className="bg-gray-700 text-white px-3 py-1 rounded"
+											>
+												🗑
+											</button>
+										</td>
 									</tr>
 							);
 						})}
 					</tbody>
 				</table>
 			</div>
+
+			<RecycleBin
+				module="supply"
+				open={recycleBinOpen}
+				onClose={() => {
+					setRecycleBinOpen(false);
+					fetchData();
+				}}
+			/>
 		</Layout>
 	);
 }
