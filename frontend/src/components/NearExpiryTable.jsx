@@ -15,9 +15,9 @@ export default function NearExpiryTable({ data }) {
         <tbody>
           {data.map((item) => (
             <tr key={item._id} className="border-t">
-              <td className="p-2">{item.medicineId?.name}</td>
-              <td>{item.supplierId?.name}</td>
-              <td>{new Date(item.expiryDate).toLocaleDateString()}</td>
+              <td className="p-2">{item.medicine_name || item.medicine_id}</td>
+              <td>{item.supplier_name || item.supplier_id}</td>
+              <td>{new Date(item.expiry_date).toLocaleDateString()}</td>
             </tr>
           ))}
         </tbody>

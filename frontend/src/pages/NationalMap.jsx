@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
-import API from "../api/axios";
+import { getSuppliers } from "../api/supplierApi";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -18,7 +18,22 @@ export default function NationalMap() {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    API.get("/map").then((res) => setData(res.data));
+    const load = async () => {
+      const suppliersRes = await getSuppliers();
+      const mapped = suppliersRes.data
+        .filter((supplier) => supplier.lat && supplier.lng)
+        .map((supplier) => ({
+          hospital: supplier.name,
+          city: supplier.address || "Unknown",
+          risk: supplier.blacklisted ? "HIGH" : supplier.verified ? "LOW" : "MEDIUM",
+          lat: supplier.lat,
+          lng: supplier.lng
+        }));
+
+      setData(mapped);
+    };
+
+    load();
   }, []);
 
   const getColor = (risk) => {

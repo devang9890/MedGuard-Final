@@ -13,7 +13,8 @@ export default function Suppliers() {
 		name: "",
 		licenseNumber: "",
 		phone: "",
-		email: ""
+		email: "",
+		address: ""
 	});
 
 	const fetchSuppliers = async () => {
@@ -26,8 +27,8 @@ export default function Suppliers() {
 	}, []);
 
 	const handleAdd = async () => {
-		await addSupplier({ ...form, address: "N/A" });
-		setForm({ name: "", licenseNumber: "", phone: "", email: "" });
+		await addSupplier({ ...form, address: form.address || "N/A" });
+		setForm({ name: "", licenseNumber: "", phone: "", email: "", address: "" });
 		fetchSuppliers();
 	};
 
@@ -48,7 +49,7 @@ export default function Suppliers() {
 			<div className="bg-white p-4 rounded shadow mb-6">
 				<h2 className="font-semibold mb-3">Add Supplier</h2>
 
-				<div className="grid grid-cols-4 gap-4">
+				<div className="grid grid-cols-5 gap-4">
 					<input
 						placeholder="Name"
 						className="border p-2"
@@ -74,6 +75,12 @@ export default function Suppliers() {
 						className="border p-2"
 						value={form.email}
 						onChange={(e) => setForm({ ...form, email: e.target.value })}
+					/>
+					<input
+						placeholder="Address"
+						className="border p-2"
+						value={form.address}
+						onChange={(e) => setForm({ ...form, address: e.target.value })}
 					/>
 				</div>
 
@@ -102,7 +109,7 @@ export default function Suppliers() {
 						{suppliers.map((s) => (
 							<tr key={s._id} className="border-t">
 								<td className="p-2">{s.name}</td>
-								<td>{s.licenseNumber}</td>
+								<td>{s.license_number || s.licenseNumber || "-"}</td>
 								<td>
 									{s.blacklisted ? (
 										<span className="text-red-600">Blacklisted</span>

@@ -30,13 +30,10 @@ async def intake_supply(supply_data):
         severity = "HIGH" if status == "REJECTED" else "MEDIUM"
         await create_alert(supply_id, flag, severity)
 
-    return {
-        "message": "Supply recorded",
-        "compliance_status": status,
-        "fake_status": fake_verdict,
-        "flags": supply["risk_flags"],
-        "id": supply_id
-    }
+    supply["id"] = supply_id
+    supply["medicine_id"] = str(supply["medicine_id"])
+    supply["supplier_id"] = str(supply["supplier_id"])
+    return supply
 
 async def list_supplies():
     supplies = []

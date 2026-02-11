@@ -10,7 +10,8 @@ async def add_supplier(supplier_data: SupplierCreate):
     supplier_dict["blacklisted"] = False
     result = await supplier_collection.insert_one(supplier_dict)
     new_supplier = await supplier_collection.find_one({"_id": result.inserted_id})
-    new_supplier["id"] = str(new_supplier["_id"])
+    new_supplier["_id"] = str(new_supplier["_id"])
+    new_supplier["id"] = new_supplier["_id"]
     return new_supplier
 
 async def verify_supplier(supplier_id: str):
@@ -20,7 +21,8 @@ async def verify_supplier(supplier_id: str):
     )
     updated_supplier = await supplier_collection.find_one({"_id": ObjectId(supplier_id)})
     if updated_supplier:
-        updated_supplier["id"] = str(updated_supplier["_id"])
+        updated_supplier["_id"] = str(updated_supplier["_id"])
+        updated_supplier["id"] = updated_supplier["_id"]
     return updated_supplier
 
 async def blacklist_supplier(supplier_id: str):
@@ -30,13 +32,15 @@ async def blacklist_supplier(supplier_id: str):
     )
     updated_supplier = await supplier_collection.find_one({"_id": ObjectId(supplier_id)})
     if updated_supplier:
-        updated_supplier["id"] = str(updated_supplier["_id"])
+        updated_supplier["_id"] = str(updated_supplier["_id"])
+        updated_supplier["id"] = updated_supplier["_id"]
     return updated_supplier
 
 async def get_all_suppliers():
     suppliers = []
     cursor = supplier_collection.find({})
     async for supplier in cursor:
-        supplier["id"] = str(supplier["_id"])
+        supplier["_id"] = str(supplier["_id"])
+        supplier["id"] = supplier["_id"]
         suppliers.append(supplier)
     return suppliers

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
-import { addSupply } from "../api/supplyApi";
+import { addSupply, getSupplies } from "../api/supplyApi";
 import { getSuppliers } from "../api/supplierApi";
 import { getMedicines } from "../api/medicineApi";
 
@@ -8,6 +8,7 @@ export default function Supplies() {
 	const [suppliers, setSuppliers] = useState([]);
 	const [medicines, setMedicines] = useState([]);
 	const [result, setResult] = useState(null);
+	const [supplies, setSupplies] = useState([]);
 
 	const [form, setForm] = useState({
 		medicineId: "",
@@ -25,8 +26,10 @@ export default function Supplies() {
 	const fetchData = async () => {
 		const sup = await getSuppliers();
 		const med = await getMedicines();
+		const suppliesRes = await getSupplies();
 		setSuppliers(sup.data);
 		setMedicines(med.data);
+		setSupplies(suppliesRes.data);
 	};
 
 	const handleSubmit = async () => {
@@ -39,8 +42,14 @@ export default function Supplies() {
 			temperature: parseFloat(form.temperature)
 		};
 		const res = await addSupply(payload);
-		setResult(res.data.compliance_status);
+		setResult(res.data.compliance_status || "PENDING");
+		const suppliesRes = await getSupplies();
+		setSupplies(suppliesRes.data);
 	};
+
+	const supplierMap = new Map(
+		suppliers.map((supplier) => [supplier._id || supplier.id, supplier])
+	);
 
 	return (
 		<Layout>
@@ -101,15 +110,52 @@ export default function Supplies() {
 				</button>
 
 				{result && (
-					<div className={`mt-6 p-4 rounded text-white text-lg ${result === "ACCEPT"
+					<div className={`mt-6 p-4 rounded text-white text-lg ${result === "ACCEPTED"
 						? "bg-green-600"
-						: result === "WARNING"
-							? "bg-yellow-500"
-							: "bg-red-600"
+						: result === "REJECTED"
+							? "bg-red-600"
+							: "bg-yellow-500"
 						}`}>
 						Compliance Result: {result}
 					</div>
 				)}
+			</div>
+
+			<div className="mt-8 bg-white p-4 rounded shadow">
+				<h2 className="font-semibold mb-3">Supply Records</h2>
+
+				<table className="w-full border">
+					<thead className="bg-gray-100">
+						<tr>
+							<th className="p-2">Batch</th>
+							<th>Supplier</th>
+							<th>Expiry</th>
+							<th>Compliance</th>
+							<th>Fake Status</th>
+							<th>Risk Flags</th>
+						</tr>
+					</thead>
+					<tbody>
+						{supplies.map((supply) => {
+							const supplier = supplierMap.get(supply.supplier_id);
+							const isFake = ["SUSPICIOUS", "FAKE"].includes(supply.fake_status);
+
+							return (
+								<tr
+										key={supply._id || supply.id}
+										className={`border-t ${isFake ? "bg-red-50" : ""}`}
+									>
+										<td className="p-2">{supply.batch_number}</td>
+										<td>{supplier?.name || "Unknown"}</td>
+										<td>{new Date(supply.expiry_date).toLocaleDateString()}</td>
+										<td>{supply.compliance_status}</td>
+										<td>{supply.fake_status || "-"}</td>
+										<td>{(supply.risk_flags || []).join(", ") || "-"}</td>
+									</tr>
+							);
+						})}
+					</tbody>
+				</table>
 			</div>
 		</Layout>
 	);

@@ -1,13 +1,52 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Layout from "../components/Layout";
-import API from "../api/axios";
+import { getSupplies } from "../api/supplyApi";
+import { getMedicines } from "../api/medicineApi";
 
 export default function Priority() {
-  const [data, setData] = useState([]);
+  const [supplies, setSupplies] = useState([]);
+  const [medicines, setMedicines] = useState([]);
 
   useEffect(() => {
-    API.get("/usage-priority").then(res => setData(res.data));
+    const load = async () => {
+      const [suppliesRes, medicinesRes] = await Promise.all([
+        getSupplies(),
+        getMedicines()
+      ]);
+      setSupplies(suppliesRes.data);
+      setMedicines(medicinesRes.data);
+    };
+
+    load();
   }, []);
+
+  const data = useMemo(() => {
+    const medicineMap = new Map(
+      medicines.map((med) => [med._id || med.id, med])
+    );
+
+    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+    const now = Date.now();
+
+    return supplies
+      .map((supply) => {
+        const expiry = new Date(supply.expiry_date).getTime();
+        const daysToExpiry = Math.max(0, Math.ceil((expiry - now) / 86400000));
+        const quantity = Number.isFinite(supply.quantity) ? supply.quantity : 0;
+        const priorityScore = clamp(Math.round((30 - daysToExpiry) * 2 + quantity / 5), 0, 100);
+        const medicine = medicineMap.get(supply.medicine_id);
+
+        return {
+          supplyId: supply.id || supply._id,
+          medicine: medicine?.name || "Unknown",
+          batchNumber: supply.batch_number,
+          daysToExpiry,
+          quantity,
+          priorityScore
+        };
+      })
+      .sort((a, b) => b.priorityScore - a.priorityScore);
+  }, [supplies, medicines]);
 
   return (
     <Layout>

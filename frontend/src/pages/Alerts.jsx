@@ -28,7 +28,7 @@ export default function Alerts() {
 				<table className="w-full border">
 					<thead className="bg-gray-100">
 						<tr>
-							<th className="p-2">Type</th>
+							<th className="p-2">Supply</th>
 							<th>Message</th>
 							<th>Severity</th>
 							<th>Date</th>
@@ -38,7 +38,7 @@ export default function Alerts() {
 					<tbody>
 						{alerts.map((alert) => (
 							<tr key={alert._id} className="border-t">
-								<td className="p-2">{alert.type}</td>
+								<td className="p-2">{alert.supply_id}</td>
 								<td>{alert.message}</td>
 
 								<td>
@@ -50,7 +50,7 @@ export default function Alerts() {
 								</td>
 
 								<td>
-									{new Date(alert.createdAt).toLocaleDateString()}
+									{new Date(alert.created_at).toLocaleDateString()}
 								</td>
 							</tr>
 						))}
