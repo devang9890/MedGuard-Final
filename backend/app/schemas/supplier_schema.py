@@ -6,6 +6,8 @@ class SupplierCreate(BaseModel):
     phone: str
     address: str
     license_number: str | None = Field(default=None, alias="licenseNumber")
+    lat: float | None = None
+    lng: float | None = None
 
     model_config = {
         "populate_by_name": True

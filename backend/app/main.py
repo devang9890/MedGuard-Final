@@ -10,6 +10,7 @@ from app.api.routes.trust_routes import router as trust_router
 from app.api.routes.ai_routes import router as ai_router
 from app.api.routes.corruption_routes import router as corruption_router
 from app.api.routes.predictive_routes import router as predictive_router
+from app.api.routes.map_routes import router as map_router
 
 app = FastAPI(title="MedGuard AI Backend")
 
@@ -35,3 +36,4 @@ app.include_router(trust_router, prefix="/trust", tags=["Trust Score"])
 app.include_router(ai_router, prefix="/ai", tags=["AI"])
 app.include_router(corruption_router, prefix="/corruption", tags=["Corruption"])
 app.include_router(predictive_router, prefix="/predictive", tags=["Predictive"])
+app.include_router(map_router, prefix="/map", tags=["National Map"])
