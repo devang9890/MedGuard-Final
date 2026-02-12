@@ -6,6 +6,7 @@ from app.api.routes.medicine_routes import router as medicine_router
 from app.api.routes.supply_routes import router as supply_router
 from app.api.routes.analytics_routes import router as analytics_router
 from app.api.routes.alerts_routes import router as alerts_router
+from app.api.routes.trust_routes import router as trust_router
 
 app = FastAPI(title="MedGuard AI Backend")
 
@@ -27,3 +28,4 @@ app.include_router(medicine_router, prefix="/medicine", tags=["Medicine"])
 app.include_router(supply_router, prefix="/supply", tags=["Supply"])
 app.include_router(alerts_router, prefix="/alerts", tags=["Alerts"])
 app.include_router(analytics_router, prefix="/analytics", tags=["Analytics"])
+app.include_router(trust_router, prefix="/trust", tags=["Trust Score"])

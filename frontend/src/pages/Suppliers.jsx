@@ -8,9 +8,11 @@ import {
 	verifySupplier,
 	blacklistSupplier
 } from "../api/supplierApi";
+import { getTrustScore } from "../api/trustApi";
 
 export default function Suppliers() {
 	const [suppliers, setSuppliers] = useState([]);
+	const [trustScores, setTrustScores] = useState({});
 	const [recycleBinOpen, setRecycleBinOpen] = useState(false);
 	const [form, setForm] = useState({
 		name: "",
@@ -23,6 +25,19 @@ export default function Suppliers() {
 	const fetchSuppliers = async () => {
 		const res = await getSuppliers();
 		setSuppliers(res.data);
+		
+		// Fetch trust scores for all suppliers
+		const scores = {};
+		for (const supplier of res.data) {
+			try {
+				const trustRes = await getTrustScore(supplier._id);
+				scores[supplier._id] = trustRes.data;
+			} catch (err) {
+				console.error(`Failed to fetch trust score for ${supplier._id}:`, err);
+				scores[supplier._id] = { score: "-", risk: "N/A" };
+			}
+		}
+		setTrustScores(scores);
 	};
 
 	useEffect(() => {
@@ -121,49 +136,65 @@ export default function Suppliers() {
 							<th className="p-2">Name</th>
 							<th>License</th>
 							<th>Status</th>
+							<th>Trust Score</th>
+							<th>Risk Level</th>
 							<th>Actions</th>
 						</tr>
 					</thead>
 
 					<tbody>
-						{suppliers.map((s) => (
-							<tr key={s._id} className="border-t">
-								<td className="p-2">{s.name}</td>
-								<td>{s.license_number || s.licenseNumber || "-"}</td>
-								<td>
-									{s.blacklisted ? (
-										<span className="text-red-600">Blacklisted</span>
-									) : s.verified ? (
-										<span className="text-green-600">Verified</span>
-									) : (
-										<span className="text-yellow-600">Pending</span>
-									)}
-								</td>
+						{suppliers.map((s) => {
+							const trust = trustScores[s._id] || { score: "...", risk: "..." };
+							const getRiskColor = (risk) => {
+								if (risk === "LOW") return "text-green-600";
+								if (risk === "MEDIUM") return "text-yellow-600";
+								if (risk === "HIGH") return "text-red-600";
+								return "text-gray-500";
+							};
 
-								<td className="flex gap-2 p-2">
-									<button
-										onClick={() => handleVerify(s._id)}
-										className="bg-green-500 text-white px-3 py-1 rounded"
-									>
-										Verify
-									</button>
+							return (
+								<tr key={s._id} className="border-t">
+									<td className="p-2">{s.name}</td>
+									<td>{s.license_number || s.licenseNumber || "-"}</td>
+									<td>
+										{s.blacklisted ? (
+											<span className="text-red-600">Blacklisted</span>
+										) : s.verified ? (
+											<span className="text-green-600">Verified</span>
+										) : (
+											<span className="text-yellow-600">Pending</span>
+										)}
+									</td>
+									<td className="font-semibold">{trust.score}</td>
+									<td className={`font-semibold ${getRiskColor(trust.risk)}`}>
+										{trust.risk}
+									</td>
 
-									<button
-										onClick={() => handleBlacklist(s._id)}
-										className="bg-red-500 text-white px-3 py-1 rounded"
-									>
-										Blacklist
-									</button>
+									<td className="flex gap-2 p-2">
+										<button
+											onClick={() => handleVerify(s._id)}
+											className="bg-green-500 text-white px-3 py-1 rounded"
+										>
+											Verify
+										</button>
 
-									<button
-										onClick={() => handleDelete(s._id)}
-										className="bg-gray-700 text-white px-3 py-1 rounded"
-									>
-										🗑
-									</button>
-								</td>
-							</tr>
-						))}
+										<button
+											onClick={() => handleBlacklist(s._id)}
+											className="bg-red-500 text-white px-3 py-1 rounded"
+										>
+											Blacklist
+										</button>
+
+										<button
+											onClick={() => handleDelete(s._id)}
+											className="bg-gray-700 text-white px-3 py-1 rounded"
+										>
+											🗑
+										</button>
+									</td>
+								</tr>
+							);
+						})}
 					</tbody>
 				</table>
 			</div>
