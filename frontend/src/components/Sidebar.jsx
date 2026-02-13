@@ -14,8 +14,7 @@ export default function Sidebar() {
 			<h2 className="text-xl font-bold mb-8">MedGuard</h2>
 
 			<nav className="flex flex-col gap-4 flex-1">
-				<Link to="/dashboard" className="hover:text-green-400">Dashboard</Link>
-				<Link to="/scan" className="hover:text-green-400">📱 Scan Medicine</Link>
+				<Link to="/dashboard" className="hover:text-green-400">Dashboard</Link>			<Link to="/public-verify" className="hover:text-green-400 font-semibold">🔍 Verify Medicine (Public)</Link>				<Link to="/scan" className="hover:text-green-400">📱 Scan Medicine</Link>
 				<Link to="/suppliers" className="hover:text-green-400">Suppliers</Link>
 				<Link to="/medicines" className="hover:text-green-400">Medicines</Link>
 				<Link to="/supplies" className="hover:text-green-400">Supplies</Link>
