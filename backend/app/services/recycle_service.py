@@ -38,6 +38,7 @@ async def get_deleted(collection_name: str):
     deleted = []
     async for doc in collection.find({"is_deleted": True}):
         doc["_id"] = str(doc["_id"])
+        doc["id"] = doc["_id"]  # Add id field for consistency
         # Serialize ObjectId fields if present
         if "medicine_id" in doc and isinstance(doc["medicine_id"], ObjectId):
             doc["medicine_id"] = str(doc["medicine_id"])

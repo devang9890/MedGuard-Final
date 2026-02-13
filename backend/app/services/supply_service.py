@@ -38,7 +38,7 @@ async def intake_supply(supply_data):
 async def list_supplies():
     supplies = []
     async for s in db.supplies.find({"is_deleted": {"$ne": True}}):
-        s["_id"] = str(s["_id"])
+        s["id"] = str(s["_id"])
         s["medicine_id"] = str(s["medicine_id"])
         s["supplier_id"] = str(s["supplier_id"])
         supplies.append(s)

@@ -10,6 +10,7 @@ import Priority from "./pages/Priority";
 import NationalMap from "./pages/NationalMap";
 import Login from "./pages/Login";
 import AIInsights from "./pages/AIInsights";
+import ScanMedicine from "./pages/ScanMedicine";
 
 const ProtectedRoute = ({ element }) => {
   const token = localStorage.getItem("token");
@@ -32,6 +33,7 @@ function App() {
         <Route path="/priority" element={<ProtectedRoute element={<Priority />} />} />
         <Route path="/national-map" element={<ProtectedRoute element={<NationalMap />} />} />
         <Route path="/ai-insights" element={<ProtectedRoute element={<AIInsights />} />} />
+        <Route path="/scan" element={<ProtectedRoute element={<ScanMedicine />} />} />
       </Routes>
     </BrowserRouter>
   );

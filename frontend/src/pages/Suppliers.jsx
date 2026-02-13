@@ -63,10 +63,13 @@ export default function Suppliers() {
 	const handleDelete = async (id) => {
 		if (!window.confirm("Move to recycle bin?")) return;
 		try {
-			await API.delete(`/supplier/${id}`);
-			fetchSuppliers();
+			const response = await API.delete(`/supplier/${id}`);
+			console.log("Delete response:", response.data);
+			await fetchSuppliers();
+			alert("Supplier moved to recycle bin successfully!");
 		} catch (err) {
 			console.error("Delete failed:", err);
+			alert("Failed to delete supplier: " + (err.response?.data?.detail || err.message));
 		}
 	};
 
@@ -206,6 +209,7 @@ export default function Suppliers() {
 					setRecycleBinOpen(false);
 					fetchSuppliers();
 				}}
+				onUpdate={fetchSuppliers}
 			/>
 		</Layout>
 	);

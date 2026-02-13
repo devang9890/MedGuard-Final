@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import API from "../api/axios";
 
-export default function RecycleBin({ module, open, onClose }) {
+export default function RecycleBin({ module, open, onClose, onUpdate }) {
   const [deleted, setDeleted] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -16,6 +16,7 @@ export default function RecycleBin({ module, open, onClose }) {
       setDeleted(res.data);
     } catch (err) {
       console.error("Failed to fetch recycle bin:", err);
+      alert("Failed to load recycle bin: " + (err.response?.data?.detail || err.message));
     } finally {
       setLoading(false);
     }
@@ -23,10 +24,14 @@ export default function RecycleBin({ module, open, onClose }) {
 
   const handleRestore = async (id) => {
     try {
-      await API.post(`/${module}/restore/${id}`);
-      fetchDeleted();
+      const response = await API.post(`/${module}/restore/${id}`);
+      console.log("Restore response:", response.data);
+      await fetchDeleted();
+      if (onUpdate) onUpdate(); // Refresh parent list
+      alert("Record restored successfully!");
     } catch (err) {
       console.error("Restore failed:", err);
+      alert("Failed to restore: " + (err.response?.data?.detail || err.message));
     }
   };
 
@@ -34,10 +39,13 @@ export default function RecycleBin({ module, open, onClose }) {
     if (!window.confirm("Permanently delete? This cannot be undone.")) return;
 
     try {
-      await API.delete(`/${module}/permanent/${id}`);
-      fetchDeleted();
+      const response = await API.delete(`/${module}/permanent/${id}`);
+      console.log("Permanent delete response:", response.data);
+      await fetchDeleted();
+      alert("Record permanently deleted!");
     } catch (err) {
       console.error("Permanent delete failed:", err);
+      alert("Failed to permanently delete: " + (err.response?.data?.detail || err.message));
     }
   };
 
@@ -64,38 +72,39 @@ export default function RecycleBin({ module, open, onClose }) {
           <table className="w-full border">
             <thead className="bg-gray-100">
               <tr>
-                <th className="p-2">ID</th>
-                <th>Name</th>
+                <th className="p-2">Name</th>
                 <th>Deleted At</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {deleted.map((item) => (
-                <tr key={item._id} className="border-t">
-                  <td className="p-2 text-xs text-gray-500">{item._id}</td>
-                  <td>{item.name || item.batch_number || "N/A"}</td>
-                  <td>
-                    {item.deleted_at
-                      ? new Date(item.deleted_at).toLocaleString()
-                      : "-"}
-                  </td>
-                  <td className="flex gap-2 p-2">
-                    <button
-                      onClick={() => handleRestore(item._id)}
-                      className="bg-green-500 text-white px-3 py-1 rounded text-sm"
-                    >
-                      Restore
-                    </button>
-                    <button
-                      onClick={() => handlePermanentDelete(item._id)}
-                      className="bg-red-600 text-white px-3 py-1 rounded text-sm"
-                    >
-                      Delete Forever
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {deleted.map((item) => {
+                const itemId = item._id || item.id;
+                return (
+                  <tr key={itemId} className="border-t">
+                    <td className="p-2 font-medium">{item.name || item.batch_number || "N/A"}</td>
+                    <td className="p-2">
+                      {item.deleted_at
+                        ? new Date(item.deleted_at).toLocaleString()
+                        : "-"}
+                    </td>
+                    <td className="flex gap-2 p-2">
+                      <button
+                        onClick={() => handleRestore(itemId)}
+                        className="bg-green-500 text-white px-3 py-1 rounded text-sm"
+                      >
+                        Restore
+                      </button>
+                      <button
+                        onClick={() => handlePermanentDelete(itemId)}
+                        className="bg-red-600 text-white px-3 py-1 rounded text-sm"
+                      >
+                        Delete Forever
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}

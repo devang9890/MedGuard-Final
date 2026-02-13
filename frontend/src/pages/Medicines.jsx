@@ -31,10 +31,13 @@ export default function Medicines() {
   const handleDelete = async (id) => {
     if (!window.confirm("Move to recycle bin?")) return;
     try {
-      await API.delete(`/medicine/${id}`);
-      fetchMedicines();
+      const response = await API.delete(`/medicine/${id}`);
+      console.log("Delete response:", response.data);
+      await fetchMedicines();
+      alert("Medicine moved to recycle bin successfully!");
     } catch (err) {
       console.error("Delete failed:", err);
+      alert("Failed to delete medicine: " + (err.response?.data?.detail || err.message));
     }
   };
 
@@ -125,6 +128,7 @@ export default function Medicines() {
           setRecycleBinOpen(false);
           fetchMedicines();
         }}
+        onUpdate={fetchMedicines}
       />
     </Layout>
   );

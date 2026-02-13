@@ -53,11 +53,14 @@ export default function Supplies() {
 	const handleDelete = async (id) => {
 		if (!window.confirm("Move to recycle bin?")) return;
 		try {
-			await API.delete(`/supply/${id}`);
+			const response = await API.delete(`/supply/${id}`);
+			console.log("Delete response:", response.data);
 			const suppliesRes = await getSupplies();
 			setSupplies(suppliesRes.data);
+			alert("Supply moved to recycle bin successfully!");
 		} catch (err) {
 			console.error("Delete failed:", err);
+			alert("Failed to delete supply: " + (err.response?.data?.detail || err.message));
 		}
 	};
 
@@ -164,7 +167,7 @@ export default function Supplies() {
 
 							return (
 								<tr
-										key={supply._id || supply.id}
+										key={supply.id}
 										className={`border-t ${isFake ? "bg-red-50" : ""}`}
 									>
 										<td className="p-2">{supply.batch_number}</td>
@@ -175,7 +178,7 @@ export default function Supplies() {
 										<td>{(supply.risk_flags || []).join(", ") || "-"}</td>
 										<td className="p-2">
 											<button
-												onClick={() => handleDelete(supply._id || supply.id)}
+												onClick={() => handleDelete(supply.id)}
 												className="bg-gray-700 text-white px-3 py-1 rounded"
 											>
 												🗑
@@ -195,6 +198,7 @@ export default function Supplies() {
 					setRecycleBinOpen(false);
 					fetchData();
 				}}
+				onUpdate={fetchData}
 			/>
 		</Layout>
 	);
