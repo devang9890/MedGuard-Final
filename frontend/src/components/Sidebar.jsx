@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 
 export default function Sidebar() {
 	const navigate = useNavigate();
+	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
 	// Initialize state from localStorage using lazy initializer
 	const [expandedSections, setExpandedSections] = useState(() => {
@@ -44,11 +45,15 @@ export default function Sidebar() {
 		}));
 	};
 
+	const closeMobileMenu = () => {
+		setIsMobileMenuOpen(false);
+	};
+
 	const NavSection = ({ title, icon, sectionKey, links }) => (
 		<div className="mb-6">
 			<button
 				onClick={() => toggleSection(sectionKey)}
-				className="w-full flex items-center justify-between px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white font-semibold text-sm transiton"
+				className="w-full flex items-center justify-between px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white font-semibold text-sm transition"
 			>
 				<span className="flex items-center gap-2">
 					<span>{icon}</span>
@@ -64,6 +69,7 @@ export default function Sidebar() {
 						<Link
 							key={idx}
 							to={link.path}
+							onClick={closeMobileMenu}
 							className="block px-3 py-2 rounded hover:bg-gray-700 text-gray-300 hover:text-white text-sm transition"
 						>
 							{link.label}
@@ -74,11 +80,21 @@ export default function Sidebar() {
 		</div>
 	);
 
-	return (
-		<div className="w-64 h-screen bg-gray-900 text-white p-5 flex flex-col overflow-y-auto">
-			<h2 className="text-2xl font-bold mb-8 text-green-400">🏥 MedGuard</h2>
+	const SidebarContent = () => (
+		<>
+			<div className="flex items-center justify-between mb-8">
+				<h2 className="text-2xl font-bold text-green-400">🏥 MedGuard</h2>
+				<button
+					onClick={closeMobileMenu}
+					className="lg:hidden text-white hover:text-gray-300 transition"
+				>
+					<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/>
+					</svg>
+				</button>
+			</div>
 
-			<nav className="flex flex-col gap-2 flex-1">
+			<nav className="flex flex-col gap-2 flex-1 overflow-y-auto">
 				{/* Admin Section */}
 				<NavSection
 					title="ADMIN"
@@ -137,6 +153,37 @@ export default function Sidebar() {
 			>
 				🚪 Logout
 			</button>
-		</div>
+		</>
+	);
+
+	return (
+		<>
+			{/* Mobile Hamburger Button */}
+			<button
+				onClick={() => setIsMobileMenuOpen(true)}
+				className="lg:hidden fixed top-4 left-4 z-50 bg-gray-900 text-white p-3 rounded-lg shadow-lg hover:bg-gray-800 transition"
+			>
+				<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"/>
+				</svg>
+			</button>
+
+			{/* Mobile Backdrop */}
+			{isMobileMenuOpen && (
+				<div
+					className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity"
+					onClick={closeMobileMenu}
+				/>
+			)}
+
+			{/* Sidebar - Mobile Drawer / Desktop Fixed */}
+			<div
+				className={`fixed lg:static inset-y-0 left-0 z-50 w-64 h-screen bg-gray-900 text-white p-5 flex flex-col 
+					transform transition-transform duration-300 lg:transform-none 
+					${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+			>
+				<SidebarContent />
+			</div>
+		</>
 	);
 }
