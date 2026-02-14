@@ -1,5 +1,15 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+// Legacy Dashboard (redirect to admin)
 import Dashboard from "./pages/Dashboard";
+
+// Role-based Dashboards
+import AdminDashboard from "./pages/AdminDashboard";
+import IntelligenceDashboard from "./pages/IntelligenceDashboard";
+import NationalDashboard from "./pages/NationalDashboard";
+import PublicDashboard from "./pages/PublicDashboard";
+
+// Feature Pages
 import Suppliers from "./pages/Suppliers";
 import Medicines from "./pages/Medicines";
 import Supplies from "./pages/Supplies";
@@ -22,18 +32,35 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Authentication */}
         <Route path="/login" element={<Login />} />
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
+        <Route path="/" element={<Navigate to="/admin" replace />} />
+
+        {/* Role-Based Dashboards */}
+        <Route path="/admin" element={<ProtectedRoute element={<AdminDashboard />} />} />
+        <Route path="/intelligence" element={<ProtectedRoute element={<IntelligenceDashboard />} />} />
+        <Route path="/national" element={<ProtectedRoute element={<NationalDashboard />} />} />
+        <Route path="/public" element={<PublicDashboard />} />
+
+        {/* Legacy Dashboard Redirect */}
+        <Route path="/dashboard" element={<Navigate to="/admin" replace />} />
+
+        {/* Admin Features */}
         <Route path="/suppliers" element={<ProtectedRoute element={<Suppliers />} />} />
         <Route path="/medicines" element={<ProtectedRoute element={<Medicines />} />} />
         <Route path="/supplies" element={<ProtectedRoute element={<Supplies />} />} />
-        <Route path="/alerts" element={<ProtectedRoute element={<Alerts />} />} />
-        <Route path="/trust" element={<ProtectedRoute element={<Trust />} />} />
+
+        {/* Intelligence Features */}
         <Route path="/corruption" element={<ProtectedRoute element={<Corruption />} />} />
-        <Route path="/priority" element={<ProtectedRoute element={<Priority />} />} />
-        <Route path="/national-map" element={<ProtectedRoute element={<NationalMap />} />} />
+        <Route path="/trust" element={<ProtectedRoute element={<Trust />} />} />
         <Route path="/ai-insights" element={<ProtectedRoute element={<AIInsights />} />} />
+
+        {/* National Monitoring Features */}
+        <Route path="/alerts" element={<ProtectedRoute element={<Alerts />} />} />
+        <Route path="/national-map" element={<ProtectedRoute element={<NationalMap />} />} />
+        <Route path="/priority" element={<ProtectedRoute element={<Priority />} />} />
+
+        {/* Public Features */}
         <Route path="/scan" element={<ProtectedRoute element={<ScanMedicine />} />} />
         <Route path="/public-verify" element={<PublicVerify />} />
       </Routes>
