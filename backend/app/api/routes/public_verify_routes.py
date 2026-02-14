@@ -8,7 +8,8 @@ from app.models.public_scan_log import PublicVerificationRequest, PublicVerifica
 from app.services.public_verification_engine_v2 import (
     verify_by_barcode,
     verify_by_batch_number,
-    verify_by_image
+    verify_by_image,
+    verify_by_medicine_name
 )
 from typing import Optional
 
@@ -170,6 +171,63 @@ async def verify_medicine_by_image(
         )
 
 
+
+
+@router.post("/verify/medicine")
+async def verify_medicine_by_name(
+    medicine_name: str,
+    batch_number: Optional[str] = None,
+    device_id: Optional[str] = None,
+    request: Request = None
+):
+    """
+    PRIMARY WORKFLOW: Verify medicine by name (like Google search)
+    
+    Medicine-name-first verification - simplest interface for public users
+    
+    Request:
+    - medicine_name (required): Brand name (e.g., "Aspirin", "Crocin")
+    - batch_number (optional): Batch number for enhanced verification
+    - device_id (optional): Device identifier for analytics
+    
+    Response:
+    - verdict: SAFE | LIKELY_AUTHENTIC | UNKNOWN | SUSPICIOUS | HIGH_RISK_FAKE
+    - confidence: 0-100 score
+    - recommendation: Citizen-friendly guidance
+    - cdsco: CDSCO registry verification details
+    - medicine_details: Resolved medicine information
+    
+    Works without batch (simple) but more accurate with batch (advanced)
+    """
+    try:
+        if not medicine_name or not medicine_name.strip():
+            raise HTTPException(
+                status_code=400,
+                detail="Medicine name is required"
+            )
+        
+        # Get client info
+        client_info = get_client_info(request)
+        
+        # Run medicine-name-first verification
+        result = await verify_by_medicine_name(
+            medicine_name=medicine_name.strip(),
+            batch_number=batch_number.strip() if batch_number else None,
+            device_id=device_id,
+            ip_address=client_info.get("ip_address")
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Verification failed: {str(e)}"
+        )
+
+
 @router.get("/test")
 async def test_public_verification():
     """
@@ -178,7 +236,13 @@ async def test_public_verification():
     return {
         "status": "active",
         "service": "MedGuard Public Verification Engine",
-        "version": "1.0.0",
-        "modes": ["barcode", "batch", "image"],
-        "verdicts": ["SAFE", "LIKELY_AUTHENTIC", "UNKNOWN", "SUSPICIOUS", "HIGH_RISK_FAKE"]
+        "version": "2.0.0",
+        "modes": ["medicine_name", "batch", "barcode", "image"],
+        "verdicts": ["SAFE", "LIKELY_AUTHENTIC", "UNKNOWN", "SUSPICIOUS", "HIGH_RISK_FAKE"],
+        "endpoints": {
+            "medicine_name": "POST /verify/medicine (PRIMARY - simple interface)",
+            "batch": "POST /verify/batch (advanced with batch number)",
+            "barcode": "POST /verify/barcode (scan barcode image)",
+            "image": "POST /verify/image (scan medicine package)"
+        }
     }

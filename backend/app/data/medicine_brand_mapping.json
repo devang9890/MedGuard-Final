@@ -1,0 +1,382 @@
+{
+  "medicine_brands": [
+    {
+      "brand_name": "Aspirin",
+      "manufacturers": ["Bayer", "Sun Pharma", "Cipla", "Lupin"],
+      "category": "Analgesic",
+      "primary_manufacturer": "Bayer"
+    },
+    {
+      "brand_name": "Crocin",
+      "manufacturers": ["GlaxoSmithKline", "Glaxo India"],
+      "category": "Analgesic",
+      "primary_manufacturer": "GlaxoSmithKline"
+    },
+    {
+      "brand_name": "Dolo",
+      "manufacturers": ["Micro Labs"],
+      "category": "Analgesic",
+      "primary_manufacturer": "Micro Labs"
+    },
+    {
+      "brand_name": "Combiflam",
+      "manufacturers": ["Sanofi India"],
+      "category": "Anti-inflammatory",
+      "primary_manufacturer": "Sanofi India"
+    },
+    {
+      "brand_name": "Ibugesic",
+      "manufacturers": ["Cipla"],
+      "category": "Anti-inflammatory",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Brufen",
+      "manufacturers": ["Abbott", "Abbott India"],
+      "category": "Anti-inflammatory",
+      "primary_manufacturer": "Abbott"
+    },
+    {
+      "brand_name": "Metacin",
+      "manufacturers": ["Novartis", "Novartis India"],
+      "category": "Analgesic",
+      "primary_manufacturer": "Novartis"
+    },
+    {
+      "brand_name": "Voveran",
+      "manufacturers": ["Novartis"],
+      "category": "Anti-inflammatory",
+      "primary_manufacturer": "Novartis"
+    },
+    {
+      "brand_name": "Diclo",
+      "manufacturers": ["Aster DM Healthcare"],
+      "category": "Anti-inflammatory",
+      "primary_manufacturer": "Aster DM Healthcare"
+    },
+    {
+      "brand_name": "Meftal",
+      "manufacturers": ["Cipla"],
+      "category": "Anti-inflammatory",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Amoxycillin",
+      "manufacturers": ["Cipla", "Lupin", "Sun Pharma", "Alembic"],
+      "category": "Antibiotic",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Augmentin",
+      "manufacturers": ["GlaxoSmithKline"],
+      "category": "Antibiotic",
+      "primary_manufacturer": "GlaxoSmithKline"
+    },
+    {
+      "brand_name": "Zifi",
+      "manufacturers": ["Cipla"],
+      "category": "Antibiotic",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Azithral",
+      "manufacturers": ["Alembic"],
+      "category": "Antibiotic",
+      "primary_manufacturer": "Alembic"
+    },
+    {
+      "brand_name": "Cefixime",
+      "manufacturers": ["Sun Pharma", "Cipla", "Lupin"],
+      "category": "Antibiotic",
+      "primary_manufacturer": "Sun Pharma"
+    },
+    {
+      "brand_name": "Erythromycin",
+      "manufacturers": ["Cipla", "Abbott"],
+      "category": "Antibiotic",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Omeprazole",
+      "manufacturers": ["Sun Pharma", "Cipla", "Lupin", "Ranbaxy"],
+      "category": "Anti-ulcer",
+      "primary_manufacturer": "Sun Pharma"
+    },
+    {
+      "brand_name": "Pantoprazole",
+      "manufacturers": ["Cipla", "Dr Reddy's"],
+      "category": "Anti-ulcer",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Ranitidine",
+      "manufacturers": ["Cipla", "Lupin"],
+      "category": "Anti-ulcer",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Domperidone",
+      "manufacturers": ["Cipla", "Lupin", "Sun Pharma"],
+      "category": "Anti-emetic",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Metoclopramide",
+      "manufacturers": ["Cipla", "Abbott"],
+      "category": "Anti-emetic",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Atorvastatin",
+      "manufacturers": ["Cipla", "Sun Pharma", "Dr Reddy's"],
+      "category": "Cholesterol",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Lipitor",
+      "manufacturers": ["Pfizer"],
+      "category": "Cholesterol",
+      "primary_manufacturer": "Pfizer"
+    },
+    {
+      "brand_name": "Crestor",
+      "manufacturers": ["AstraZeneca"],
+      "category": "Cholesterol",
+      "primary_manufacturer": "AstraZeneca"
+    },
+    {
+      "brand_name": "Ramipril",
+      "manufacturers": ["Lupin", "Cipla"],
+      "category": "Blood pressure",
+      "primary_manufacturer": "Lupin"
+    },
+    {
+      "brand_name": "Lisinopril",
+      "manufacturers": ["Sun Pharma", "Cipla"],
+      "category": "Blood pressure",
+      "primary_manufacturer": "Sun Pharma"
+    },
+    {
+      "brand_name": "Amlodipine",
+      "manufacturers": ["Cipla", "Ranbaxy", "Sun Pharma"],
+      "category": "Blood pressure",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Metoprolol",
+      "manufacturers": ["Cipla", "Lupin", "Astra Zeneca"],
+      "category": "Blood pressure",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Hydrochlorothiazide",
+      "manufacturers": ["Cipla", "Lupin"],
+      "category": "Blood pressure",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Metformin",
+      "manufacturers": ["Cipla", "Sun Pharma", "Lupin", "Ranbaxy"],
+      "category": "Diabetes",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Glibenclamide",
+      "manufacturers": ["Cipla", "Lupin"],
+      "category": "Diabetes",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Pioglitazone",
+      "manufacturers": ["Cipla", "Takeda"],
+      "category": "Diabetes",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Insulin",
+      "manufacturers": ["Novo Nordisk", "Eli Lilly", "Sanofi"],
+      "category": "Diabetes",
+      "primary_manufacturer": "Novo Nordisk"
+    },
+    {
+      "brand_name": "Levothyroxine",
+      "manufacturers": ["Cipla", "Lupin", "Sun Pharma"],
+      "category": "Thyroid",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Propranolol",
+      "manufacturers": ["Cipla", "Lupin"],
+      "category": "Beta blocker",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Alprazolam",
+      "manufacturers": ["Cipla", "Lupin"],
+      "category": "Anti-anxiety",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Diazepam",
+      "manufacturers": ["Cipla", "Roche"],
+      "category": "Anti-anxiety",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Lorazepam",
+      "manufacturers": ["Cipla", "Wyeth"],
+      "category": "Anti-anxiety",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Amitriptyline",
+      "manufacturers": ["Cipla", "Lupin"],
+      "category": "Antidepressant",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Sertraline",
+      "manufacturers": ["Cipla", "Lupin", "Pfizer"],
+      "category": "Antidepressant",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Fluoxetine",
+      "manufacturers": ["Cipla", "Lilly"],
+      "category": "Antidepressant",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Escitalopram",
+      "manufacturers": ["Cipla", "Lupin"],
+      "category": "Antidepressant",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Salbutamol",
+      "manufacturers": ["GlaxoSmithKline", "Cipla", "Sun Pharma"],
+      "category": "Asthma",
+      "primary_manufacturer": "GlaxoSmithKline"
+    },
+    {
+      "brand_name": "Fluticasone",
+      "manufacturers": ["GlaxoSmithKline"],
+      "category": "Asthma",
+      "primary_manufacturer": "GlaxoSmithKline"
+    },
+    {
+      "brand_name": "Montelukast",
+      "manufacturers": ["Cipla", "Merck"],
+      "category": "Asthma",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Cetirizine",
+      "manufacturers": ["Cipla", "UCB Pharma"],
+      "category": "Antihistamine",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Loratadine",
+      "manufacturers": ["Cipla", "Schering-Plough"],
+      "category": "Antihistamine",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Fexofenadine",
+      "manufacturers": ["Cipla", "Aventis"],
+      "category": "Antihistamine",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Acyclovir",
+      "manufacturers": ["Cipla", "GlaxoSmithKline"],
+      "category": "Antiviral",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Oseltamivir",
+      "manufacturers": ["Cipla", "Roche"],
+      "category": "Antiviral",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Paracetamol",
+      "manufacturers": ["Cipla", "Sun Pharma", "Lupin", "Abbott"],
+      "category": "Analgesic",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Hydrocodone",
+      "manufacturers": ["Abbott", "Cipla"],
+      "category": "Analgesic",
+      "primary_manufacturer": "Abbott"
+    },
+    {
+      "brand_name": "Morphine",
+      "manufacturers": ["Cipla", "Abbott"],
+      "category": "Analgesic",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Codeine",
+      "manufacturers": ["Cipla", "Abbott"],
+      "category": "Analgesic",
+      "primary_manufacturer": "Cipla"
+    },
+    {
+      "brand_name": "Himalaya",
+      "manufacturers": ["Himalaya Healthcare Limited", "Himalaya Drug Company"],
+      "category": "Ayurvedic",
+      "primary_manufacturer": "Himalaya Healthcare Limited"
+    },
+    {
+      "brand_name": "Baidyanath",
+      "manufacturers": ["Baidyanath"],
+      "category": "Ayurvedic",
+      "primary_manufacturer": "Baidyanath"
+    },
+    {
+      "brand_name": "Patanjali",
+      "manufacturers": ["Patanjali Ayurved"],
+      "category": "Ayurvedic",
+      "primary_manufacturer": "Patanjali Ayurved"
+    },
+    {
+      "brand_name": "Arjun",
+      "manufacturers": ["Arjun Natural Extracts"],
+      "category": "Ayurvedic",
+      "primary_manufacturer": "Arjun Natural Extracts"
+    },
+    {
+      "brand_name": "Organic India",
+      "manufacturers": ["Organic India"],
+      "category": "Ayurvedic",
+      "primary_manufacturer": "Organic India"
+    },
+    {
+      "brand_name": "SBL",
+      "manufacturers": ["SBL"],
+      "category": "Homeopathic",
+      "primary_manufacturer": "SBL"
+    },
+    {
+      "brand_name": "Reckeweg",
+      "manufacturers": ["Dr. Reckeweg"],
+      "category": "Homeopathic",
+      "primary_manufacturer": "Dr. Reckeweg"
+    },
+    {
+      "brand_name": "Boiron",
+      "manufacturers": ["Boiron"],
+      "category": "Homeopathic",
+      "primary_manufacturer": "Boiron"
+    },
+    {
+      "brand_name": "Heel",
+      "manufacturers": ["Heel"],
+      "category": "Homeopathic",
+      "primary_manufacturer": "Heel"
+    }
+  ]
+}

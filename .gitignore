@@ -1,4 +1,109 @@
-__pycache__
-.env
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+
+# Virtual Environments
 .venv
-venv
+venv/
+ENV/
+env/
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+*.pem
+
+# Node.js / Frontend
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.npm
+package-lock.json
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+*.pid
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+*.tmp
+.cache/
+.tmp/
+
+# Build outputs
+dist/
+build/
+
+# MedGuard Specific
+# Frontend build outputs
+/frontend/dist/
+/frontend/build/
+/frontend/.vite/
+
+# Test and seed outputs
+test_reports/
+seed_outputs/
+verification_reports/
+*.report
+
+# API cache and generated files
+/backend/app/cache/
+/backend/app/generated/
+*.cache
+
+# Batch processing outputs
+/backend/app/batch_outputs/
+batch_logs/
+
+# Generated verification data
+verification_data/
+scan_logs/

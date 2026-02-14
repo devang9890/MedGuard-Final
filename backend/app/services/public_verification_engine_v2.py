@@ -5,6 +5,7 @@ Works even when batch is not in database
 """
 from app.db.mongodb import get_collection
 from app.services.batch_intelligence_engine import intelligence_engine
+from app.services.cdsco_verification_service import verify_manufacturer
 from datetime import datetime
 from typing import Optional
 from bson import ObjectId
@@ -157,23 +158,47 @@ async def verify_by_batch_number_dynamic(
         # ALWAYS run intelligence, even if DB found
         ai_analysis = intelligence_engine.analyze_batch(batch_number, manufacturer)
         
+        # ===== PHASE 2B: CDSCO MANUFACTURER VERIFICATION =====
+        cdsco_result = {"cdsco_match": False, "confidence_modifier": 0, "risk_flag": None}
+        if manufacturer:
+            cdsco_result = await verify_manufacturer(manufacturer)
+            print(f"🔍 CDSCO RESULT for {manufacturer}: {cdsco_result}")
+        
         # ===== PHASE 3: MERGE SIGNALS =====
-        # Combine DB confidence with AI confidence
-        base_confidence = 50.0
+        # Combine DB confidence with AI confidence and CDSCO
+        base_confidence = 0.0
         
-        # Add DB modifier
-        base_confidence += db_confidence_modifier
+        # Start with DB modifier if found
+        if db_found:
+            base_confidence += 35.0  # Found in DB
+            base_confidence += db_confidence_modifier
+        else:
+            db_risk_flags.append("NOT_IN_DATABASE")
         
-        # Add AI analysis (weighted)
+        # Add CDSCO manufacturer verification (CORE SIGNAL)
+        if cdsco_result.get("cdsco_match"):
+            cdsco_mod = cdsco_result.get("confidence_modifier", 0)
+            base_confidence += cdsco_mod
+            print(f"✅ CDSCO Match: +{cdsco_mod} → {base_confidence}")
+            if cdsco_result.get("risk_flag"):
+                db_risk_flags.append(cdsco_result["risk_flag"])
+        elif manufacturer:
+            # CDSCO lookup happened but no match
+            cdsco_penalty = cdsco_result.get("confidence_modifier", -30)
+            base_confidence += cdsco_penalty
+            print(f"⚠️ CDSCO No Match: {cdsco_penalty} → {base_confidence}")
+            if cdsco_result.get("risk_flag"):
+                db_risk_flags.append(cdsco_result["risk_flag"])
+        
+        # Add AI analysis (weighted based on DB/CDSCO availability)
         ai_confidence = ai_analysis["confidence_score"]
         
-        if db_found:
-            # DB found: AI contributes 30%, DB contributes 70%
-            final_confidence = (base_confidence * 0.7) + (ai_confidence * 0.3)
+        if db_found or cdsco_result.get("cdsco_match"):
+            # DB found OR CDSCO verified: weight towards confirmed sources (65% base, 35% AI)
+            final_confidence = (base_confidence * 0.65) + (ai_confidence * 0.35)
         else:
-            # DB NOT found: AI analysis is primary (use AI confidence directly)
-            final_confidence = ai_confidence
-            db_risk_flags.append("NOT_IN_DATABASE")
+            # No DB and no CDSCO match: weight AI heavily (40% base, 60% AI)
+            final_confidence = (base_confidence * 0.4) + (ai_confidence * 0.6)
         
         # Clamp confidence
         final_confidence = max(0.0, min(100.0, final_confidence))
@@ -202,6 +227,13 @@ async def verify_by_batch_number_dynamic(
         
         # ===== PHASE 6: BUILD REASONING =====
         reasoning = []
+        
+        # CDSCO reasoning
+        if cdsco_result.get("cdsco_match"):
+            status = cdsco_result.get("details", {}).get("status", "Approved")
+            reasoning.append(f"✓ Manufacturer verified in CDSCO registry ({status})")
+        elif manufacturer:
+            reasoning.append("⚠ Manufacturer not found in CDSCO registry")
         
         # DB reasoning
         if db_found:
@@ -287,8 +319,15 @@ async def verify_by_batch_number_dynamic(
             "recommendation": recommendation,
             "reasoning": reasoning,
             "medicine_details": medicine_details,
+            "cdsco": {
+                "cdsco_match": cdsco_result.get("cdsco_match", False),
+                "manufacturer_verified": cdsco_result.get("manufacturer_verified", False),
+                "details": cdsco_result.get("details"),
+                "confidence_modifier": cdsco_result.get("confidence_modifier", 0)
+            },
             "analysis_metadata": {
                 "database_match": db_found,
+                "cdsco_verified": cdsco_result.get("cdsco_match", False),
                 "ai_confidence": round(ai_confidence, 1),
                 "format_valid": ai_analysis["format_analysis"].get("format_valid"),
                 "recognized_manufacturer": ai_analysis["pattern_recognition"].get("recognized_manufacturer")
@@ -408,3 +447,259 @@ async def verify_by_image(
 
 # Maintain backward compatibility
 verify_by_batch_number = verify_by_batch_number_dynamic
+
+
+async def verify_by_medicine_name(
+    medicine_name: str,
+    batch_number: Optional[str] = None,
+    device_id: Optional[str] = None,
+    ip_address: Optional[str] = None
+) -> dict:
+    """
+    MEDICINE-NAME-FIRST VERIFICATION
+    
+    Primary workflow for public users (like Google search for medicines)
+    
+    Pipeline:
+    1. Resolve medicine name → manufacturer(s) using brand mapping
+    2. CDSCO verification on inferred manufacturer (CORE)
+    3. If batch provided: batch intelligence
+    4. Compute confidence without batch if needed
+    5. Return verdict + recommendation
+    
+    Works even without batch (but more accurate with it)
+    """
+    try:
+        from app.services.brand_mapping_service import find_manufacturer_by_brand
+        
+        if not medicine_name or not medicine_name.strip():
+            return {
+                "verdict": "UNKNOWN",
+                "confidence": 20.0,
+                "risk_flags": ["EMPTY_MEDICINE_NAME"],
+                "recommendation": "❓ Please enter a medicine name to verify.",
+                "reasoning": ["No medicine name provided"],
+                "medicine_details": None,
+                "cdsco": {"cdsco_match": False, "manufacturer_verified": False}
+            }
+        
+        medicine_name = medicine_name.strip()
+        
+        print(f"\n🔍 MEDICINE-NAME VERIFICATION: {medicine_name}")
+        
+        # ===== STEP 1: Brand Mapping - Map medicine name to manufacturer =====
+        print(f"\n[STEP 1] Brand Mapping: Resolving '{medicine_name}' to manufacturer...")
+        brand_result = await find_manufacturer_by_brand(medicine_name)
+        
+        if not brand_result.get("found"):
+            print(f"⚠️ Medicine brand not found in mapping database")
+            recommendation = f"❌ Medicine '{medicine_name}' not found in MedGuard database. \n\nThis could mean:\n• Brand name is spelled incorrectly\n• It's not a registered medicine\n• It's a very new product\n\nPlease verify the spelling or consult a pharmacist."
+            
+            return {
+                "verdict": "UNKNOWN",
+                "confidence": 15.0,
+                "risk_flags": ["MEDICINE_NOT_IN_BRAND_MAPPING"],
+                "recommendation": recommendation,
+                "reasoning": ["Medicine brand not found in database"],
+                "medicine_details": {
+                    "name": medicine_name,
+                    "database_match": False,
+                    "brand_found": False
+                },
+                "cdsco": {"cdsco_match": False, "manufacturer_verified": False}
+            }
+        
+        inferred_manufacturers = brand_result.get("manufacturers", [])
+        primary_manufacturer = brand_result.get("primary_manufacturer")
+        brand_confidence_match = brand_result.get("confidence", 100.0)
+        
+        print(f"✅ Brand found: {brand_result['brand_name']}")
+        print(f"   Category: {brand_result['category']}")
+        print(f"   Manufacturers: {inferred_manufacturers}")
+        print(f"   Primary: {primary_manufacturer}")
+        
+        # ===== STEP 2: CDSCO Verification on Inferred Manufacturer =====
+        print(f"\n[STEP 2] CDSCO Verification on manufacturer '{primary_manufacturer}'...")
+        
+        cdsco_result = {}
+        if primary_manufacturer:
+            cdsco_result = await verify_manufacturer(primary_manufacturer)
+            print(f"🔍 CDSCO RESULT: Match={cdsco_result.get('cdsco_match')}, Modifier={cdsco_result.get('confidence_modifier')}")
+        else:
+            cdsco_result = {
+                "cdsco_match": False,
+                "confidence_modifier": 0,
+                "risk_flag": "NO_MANUFACTURER_INFERRED"
+            }
+        
+        # ===== STEP 3: Calculate Base Confidence from Brand + CDSCO =====
+        print(f"\n[STEP 3] Base Confidence Calculation...")
+        
+        base_confidence = 0.0
+        reasoning = []
+        risk_flags = []
+        sources = []
+        
+        # Brand mapping confidence
+        brand_bonus = (brand_confidence_match / 100.0) * 40.0  # Up to 40 points
+        base_confidence += brand_bonus
+        print(f"✅ Brand mapping: +{round(brand_bonus, 1)} (match quality: {brand_confidence_match}%)")
+        reasoning.append(f"✓ Medicine '{medicine_name}' recognized in database")
+        
+        # CDSCO manufacturer verification (CORE)
+        if cdsco_result.get("cdsco_match"):
+            cdsco_mod = cdsco_result.get("confidence_modifier", 0)
+            # CDSCO-verified manufacturers get +50 points (core verification layer)
+            cdsco_mod = max(cdsco_mod, 50)  # Ensure at least 50 for approved
+            base_confidence += cdsco_mod
+            print(f"✅ CDSCO verified: +{cdsco_mod}")
+            reasoning.append(f"✓ Manufacturer '{primary_manufacturer}' verified in CDSCO registry")
+            sources.append("BRAND_MAPPING")
+            sources.append("CDSCO_VERIFIED")
+        else:
+            cdsco_penalty = cdsco_result.get("confidence_modifier", -20)
+            base_confidence += cdsco_penalty
+            print(f"⚠️ CDSCO not found: {cdsco_penalty}")
+            reasoning.append(f"⚠ Manufacturer not verified in CDSCO registry")
+            risk_flags.append("MANUFACTURER_NOT_IN_CDSCO")
+            if cdsco_result.get("risk_flag"):
+                risk_flags.append(cdsco_result["risk_flag"])
+        
+        # Clamp to reasonable starting point
+        base_confidence = max(10.0, min(90.0, base_confidence))
+        
+        # ===== STEP 4: Optional Batch Intelligence (if batch provided) =====
+        print(f"\n[STEP 4] Optional Batch Intelligence...")
+        
+        if batch_number and batch_number.strip():
+            print(f"   Batch provided: {batch_number}")
+            batch_number = batch_number.strip().upper()
+            
+            try:
+                supply = await supplies_collection.find_one({
+                    "batch_number": batch_number,
+                    "$or": [{"deleted": {"$exists": False}}, {"deleted": False}]
+                })
+                
+                if supply:
+                    print(f"   ✅ Batch found in database")
+                    base_confidence += 15.0
+                    reasoning.append(f"✓ Batch number verified in database")
+                    sources.append("BATCH_VERIFIED")
+                    
+                    # Check expiry
+                    if supply.get("expiry_date"):
+                        try:
+                            expiry = supply["expiry_date"]
+                            if isinstance(expiry, str):
+                                from datetime import datetime
+                                expiry = datetime.fromisoformat(expiry.replace("Z", "+00:00"))
+                            
+                            if expiry < datetime.now():
+                                base_confidence = -100.0  # Critical failure
+                                risk_flags.append("BATCH_EXPIRED")
+                                reasoning.append("⚠ Batch has EXPIRED")
+                        except:
+                            pass
+                else:
+                    print(f"   ⚠️ Batch not found in database")
+                    reasoning.append("⚠ Batch number not found in database")
+                    # No penalty for optional batch - confidence stays the same
+            except Exception as e:
+                print(f"   ❌ Batch lookup error: {e}")
+        else:
+            print(f"   ℹ️ No batch provided - verification based on medicine name only")
+            reasoning.append("ℹ Medicine name verified; batch number not provided")
+        
+        # ===== STEP 5: Final Confidence Aggregation =====
+        print(f"\n[STEP 5] Final Confidence Aggregation...")
+        final_confidence = max(0.0, min(100.0, base_confidence))
+        print(f"✅ FINAL CONFIDENCE: {round(final_confidence, 1)}%")
+        
+        # ===== STEP 6: Verdict Determination =====
+        print(f"\n[STEP 6] Verdict Determination...")
+        verdict = map_confidence_to_verdict(final_confidence)
+        recommendation = generate_recommendation(verdict, final_confidence, reasoning)
+        
+        print(f"✅ VERDICT: {verdict}")
+        
+        # ===== STEP 7: Log Scan =====
+        try:
+            await scan_log_collection.insert_one({
+                "input_type": "medicine_name",
+                "medicine_name": medicine_name,
+                "batch_number": batch_number,
+                "manufacturer": primary_manufacturer,
+                "verdict": verdict,
+                "confidence": final_confidence,
+                "risk_flags": risk_flags,
+                "sources": sources,
+                "reasoning": reasoning,
+                "device_id": device_id,
+                "ip_address": ip_address,
+                "timestamp": datetime.utcnow(),
+                "brand_confidence": brand_confidence_match,
+                "cdsco_verified": cdsco_result.get("cdsco_match", False)
+            })
+        except Exception as e:
+            print(f"⚠️ Logging error (non-critical): {e}")
+        
+        # ===== STEP 8: Return Result =====
+        return {
+            "verdict": verdict,
+            "confidence": round(final_confidence, 1),
+            "risk_flags": risk_flags,
+            "sources": sources,
+            "recommendation": recommendation,
+            "reasoning": reasoning,
+            "medicine_details": {
+                "name": medicine_name,
+                "brand_name": brand_result["brand_name"],
+                "category": brand_result.get("category", "Unknown"),
+                "inferred_manufacturer": primary_manufacturer,
+                "all_manufacturers": inferred_manufacturers,
+                "batch_number": batch_number,
+                "database_match": True,
+                "brand_found": True
+            },
+            "cdsco": {
+                "cdsco_match": cdsco_result.get("cdsco_match", False),
+                "manufacturer_verified": cdsco_result.get("manufacturer_verified", False),
+                "details": cdsco_result.get("details"),
+                "confidence_modifier": cdsco_result.get("confidence_modifier", 0),
+                "status": cdsco_result.get("details", {}).get("status") if cdsco_result.get("details") else None
+            },
+            "analysis_metadata": {
+                "input_method": "medicine_name",
+                "batch_provided": bool(batch_number),
+                "brand_confidence": brand_confidence_match,
+                "cdsco_verified": cdsco_result.get("cdsco_match", False)
+            }
+        }
+    
+    except ImportError as e:
+        print(f"❌ Missing dependency: {e}")
+        return {
+            "verdict": "UNKNOWN",
+            "confidence": 20.0,
+            "risk_flags": ["SERVICE_UNAVAILABLE"],
+            "recommendation": "⚠️ Verification service temporarily unavailable. Please try again.",
+            "reasoning": ["Service dependency not available"],
+            "medicine_details": None,
+            "cdsco": {"cdsco_match": False}
+        }
+    except Exception as e:
+        print(f"❌ Medicine verification error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        return {
+            "verdict": "UNKNOWN",
+            "confidence": 15.0,
+            "risk_flags": ["SYSTEM_ERROR"],
+            "recommendation": "⚠️ System error during verification. Please try again or contact support.",
+            "reasoning": ["System error occurred"],
+            "medicine_details": None,
+            "cdsco": {"cdsco_match": False}
+        }
+
