@@ -15,14 +15,9 @@ export default function Priority() {
         getUsagePriority(),
         getMedicines()
       ]);
-
       setPriorities(prioritiesRes.data);
-
-      // Create medicine lookup map
       const medMap = {};
-      medicinesRes.data.forEach(med => {
-        medMap[med._id] = med.name;
-      });
+      medicinesRes.data.forEach(med => { medMap[med._id] = med.name; });
       setMedicines(medMap);
     } catch (err) {
       console.error("Failed to fetch priority data:", err);
@@ -31,29 +26,16 @@ export default function Priority() {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const getRecommendationColor = (rec) => {
-    switch(rec) {
+    switch (rec) {
       case "EXPIRED": return "bg-gray-800 text-white";
       case "USE_IMMEDIATELY": return "bg-red-600 text-white";
       case "USE_SOON": return "bg-orange-600 text-white";
       case "NORMAL": return "bg-green-600 text-white";
       case "HOLD": return "bg-gray-600 text-white";
       default: return "bg-gray-400 text-white";
-    }
-  };
-
-  const getRecommendationIcon = (rec) => {
-    switch(rec) {
-      case "EXPIRED": return "❌";
-      case "USE_IMMEDIATELY": return "🚨";
-      case "USE_SOON": return "⚠️";
-      case "NORMAL": return "✅";
-      case "HOLD": return "⏸️";
-      default: return "❓";
     }
   };
 
@@ -75,8 +57,11 @@ export default function Priority() {
   if (loading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center h-64">
-          <p className="text-gray-500">Calculating priorities...</p>
+        <div className="flex items-center justify-center h-screen">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-amber-600 mb-4"></div>
+            <p className="text-gray-500 text-lg font-semibold">Calculating priorities...</p>
+          </div>
         </div>
       </Layout>
     );
@@ -92,149 +77,105 @@ export default function Priority() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900">📊 Usage Priority Recommendations</h1>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-5 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-gray-500 text-sm font-medium">Expired</h3>
-            <p className="text-3xl font-bold text-gray-800 mt-2">{stats.expired}</p>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-gray-500 text-sm font-medium">Use Immediately</h3>
-            <p className="text-3xl font-bold text-red-600 mt-2">{stats.immediate}</p>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-gray-500 text-sm font-medium">Use Soon</h3>
-            <p className="text-3xl font-bold text-orange-600 mt-2">{stats.soon}</p>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-gray-500 text-sm font-medium">Normal Priority</h3>
-            <p className="text-3xl font-bold text-green-600 mt-2">{stats.normal}</p>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-gray-500 text-sm font-medium">Hold</h3>
-            <p className="text-3xl font-bold text-gray-600 mt-2">{stats.hold}</p>
-          </div>
-        </div>
-
-        {/* Info Panel */}
-        <div className="bg-blue-50 border-l-4 border-blue-500 p-4">
-          <h3 className="font-semibold text-blue-900">🎯 AI Decision Assistant</h3>
-          <p className="mt-2 text-sm text-blue-800">
-            This system provides intelligent recommendations based on multiple factors:
-          </p>
-          <ul className="mt-2 space-y-1 text-sm text-blue-800">
-            <li>📅 <strong>Expiry Date:</strong> Prioritizes near-expiry stock (+50 if &lt;7 days)</li>
-            <li>🌡️ <strong>Temperature Alerts:</strong> Flags temperature-compromised batches (+20)</li>
-            <li>🔍 <strong>Compliance Status:</strong> Highlights rejected/pending items (+25/+10)</li>
-            <li>🚫 <strong>Fake Detection:</strong> Marks suspicious batches (+10)</li>
-            <li>📦 <strong>Quantity:</strong> Large quantities prioritized (+5)</li>
-          </ul>
-        </div>
-
-        {/* Priority Table */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b">
-            <h2 className="text-xl font-semibold">Supply Priority List</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Sorted by priority score (highest to lowest)
-            </p>
-          </div>
-
-          {priorities.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
-              No supply data available
+      <div className="mb-8">
+        <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 rounded-2xl p-8 shadow-xl">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-white mb-2 flex items-center">
+                <svg className="w-10 h-10 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Usage Priority Recommendations
+              </h1>
+              <p className="text-orange-100 text-lg">AI-powered medicine usage prioritization</p>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="p-3 text-left">Medicine</th>
-                    <th className="p-3 text-left">Batch Number</th>
-                    <th className="p-3 text-left">Days to Expiry</th>
-                    <th className="p-3 text-left">Quantity</th>
-                    <th className="p-3 text-left">Priority Score</th>
-                    <th className="p-3 text-left">Recommendation</th>
-                    <th className="p-3 text-left">Risk Flags</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {priorities.map((item, idx) => (
-                    <tr 
-                      key={item.supply_id} 
-                      className={`border-t hover:bg-gray-50 ${
-                        item.recommendation === "EXPIRED" ? "bg-gray-100" :
-                        item.recommendation === "USE_IMMEDIATELY" ? "bg-red-50" : ""
-                      }`}
-                    >
-                      <td className="p-3">
-                        {medicines[item.medicine_id] || "Unknown"}
-                      </td>
-                      <td className="p-3 font-mono text-sm">
-                        {item.batch_number}
-                      </td>
-                      <td className={`p-3 ${getDaysColor(item.days_to_expiry)}`}>
-                        {item.days_to_expiry !== null 
-                          ? `${item.days_to_expiry} days`
-                          : "N/A"
-                        }
-                      </td>
-                      <td className="p-3">
-                        {item.quantity}
-                      </td>
-                      <td className={`p-3 text-lg ${getScoreColor(item.priority_score)}`}>
-                        {item.priority_score}
-                      </td>
-                      <td className="p-3">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getRecommendationColor(item.recommendation)}`}>
-                          {getRecommendationIcon(item.recommendation)} {item.recommendation.replace(/_/g, ' ')}
-                        </span>
-                      </td>
-                      <td className="p-3">
-                        {item.risk_flags && item.risk_flags.length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
-                            {item.risk_flags.slice(0, 2).map((flag, idx) => (
-                              <span 
-                                key={idx}
-                                className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs"
-                              >
-                                {flag}
-                              </span>
-                            ))}
-                            {item.risk_flags.length > 2 && (
-                              <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
-                                +{item.risk_flags.length - 2}
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400 text-sm">None</span>
-                        )}
-                      </td>
-                    </tr>
+            <div className="mt-4 md:mt-0">
+              <button onClick={fetchData} className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center shadow-lg">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Recalculate
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        {[
+          { label: "Expired", value: stats.expired, color: "text-gray-800", bg: "bg-gray-200" },
+          { label: "Use Immediately", value: stats.immediate, color: "text-red-600", bg: "bg-red-100" },
+          { label: "Use Soon", value: stats.soon, color: "text-orange-600", bg: "bg-orange-100" },
+          { label: "Normal", value: stats.normal, color: "text-green-600", bg: "bg-green-100" },
+          { label: "Hold", value: stats.hold, color: "text-gray-600", bg: "bg-gray-100" }
+        ].map((s, i) => (
+          <div key={i} className="bg-white rounded-xl p-5 shadow-lg border border-gray-100">
+            <div className={`${s.bg} rounded-full p-2 w-10 h-10 flex items-center justify-center mb-2`}>
+              <svg className={`w-5 h-5 ${s.color}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className={`text-3xl font-bold ${s.color}`}>{s.value}</p>
+            <p className="text-xs text-gray-500 font-medium mt-1">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-4">
+          <h2 className="text-xl font-bold text-white flex items-center">
+            <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Supply Priority List
+          </h2>
+        </div>
+        {priorities.length === 0 ? (
+          <div className="px-6 py-12 text-center text-gray-400">
+            <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            </svg>
+            <p className="text-lg font-semibold">No supply data available</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b-2 border-gray-200">
+                <tr>
+                  {["Medicine", "Batch", "Days to Expiry", "Qty", "Score", "Recommendation", "Flags"].map(h => (
+                    <th key={h} className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">{h}</th>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Refresh Button */}
-        <div className="flex justify-center">
-          <button
-            onClick={fetchData}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
-          >
-            🔄 Recalculate Priorities
-          </button>
-        </div>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {priorities.map((item) => (
+                  <tr key={item.supply_id} className={`hover:bg-gray-50 transition-colors ${item.recommendation === "EXPIRED" ? "bg-gray-50" : item.recommendation === "USE_IMMEDIATELY" ? "bg-red-50/50" : ""}`}>
+                    <td className="px-6 py-4 font-medium text-gray-900">{medicines[item.medicine_id] || "Unknown"}</td>
+                    <td className="px-6 py-4 font-mono text-sm text-gray-700">{item.batch_number}</td>
+                    <td className={`px-6 py-4 ${getDaysColor(item.days_to_expiry)}`}>{item.days_to_expiry !== null ? `${item.days_to_expiry} days` : "N/A"}</td>
+                    <td className="px-6 py-4 text-gray-900">{item.quantity}</td>
+                    <td className={`px-6 py-4 text-lg ${getScoreColor(item.priority_score)}`}>{item.priority_score}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getRecommendationColor(item.recommendation)}`}>
+                        {item.recommendation.replace(/_/g, ' ')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      {item.risk_flags?.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {item.risk_flags.slice(0, 2).map((flag, idx) => (
+                            <span key={idx} className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">{flag}</span>
+                          ))}
+                          {item.risk_flags.length > 2 && <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">+{item.risk_flags.length - 2}</span>}
+                        </div>
+                      ) : <span className="text-gray-400 text-sm">None</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </Layout>
   );

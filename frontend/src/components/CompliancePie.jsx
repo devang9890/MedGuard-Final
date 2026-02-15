@@ -9,17 +9,16 @@ export default function CompliancePie({ data }) {
 
   return (
     <div className="chart-canvas">
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={260}>
         <PieChart>
           <Pie
             data={chartData}
             dataKey="value"
-            innerRadius={62}
-            outerRadius={110}
-            paddingAngle={1}
-            cornerRadius={8}
-            stroke="#ffffff"
-            strokeWidth={3}
+            innerRadius={55}
+            outerRadius={95}
+            paddingAngle={2}
+            cornerRadius={6}
+            stroke="none"
             isAnimationActive
           >
             <Cell fill="#4ade80" />
@@ -30,14 +29,19 @@ export default function CompliancePie({ data }) {
             formatter={(value, name) => [value, name]}
             contentStyle={{
               background: "#0f172a",
-              border: "none",
-              borderRadius: 10,
-              fontSize: 12
+              border: "1px solid #1e293b",
+              borderRadius: 8,
+              fontSize: 12,
+              color: "#e5e7eb",
             }}
-            labelStyle={{ color: "#f8fafc" }}
-            itemStyle={{ color: "#f8fafc" }}
+            itemStyle={{ color: "#e5e7eb" }}
           />
-          <Legend verticalAlign="bottom" iconType="circle" />
+          <Legend
+            verticalAlign="bottom"
+            iconType="circle"
+            iconSize={8}
+            wrapperStyle={{ fontSize: 12, color: "var(--text-secondary)" }}
+          />
         </PieChart>
       </ResponsiveContainer>
     </div>
