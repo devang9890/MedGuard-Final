@@ -54,7 +54,7 @@ pip install -r requirements.txt
 # ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 # Initialize database
-python seed_admin.py
+python scripts/seed_admin.py
 
 # Start server
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -74,7 +74,24 @@ npm run dev
 
 ---
 
-## � Screenshots
+## 📁 Project Structure
+
+```bash
+medguard/
+├── backend/              # FastAPI backend
+│   ├── app/
+│   └── scripts/          # Seed & test scripts
+├── frontend/             # React + Vite frontend
+├── docs/                 # Documentation (implementation guide, redesign summary)
+├── README.md
+└── .gitignore
+```
+
+Detailed backend and frontend structure lives inside their respective folders (standard FastAPI and React/Vite layouts).
+
+---
+
+## 📸 Screenshots
 
 <table>
   <tr>
