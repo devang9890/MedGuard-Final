@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://medguard-final-1.onrender.com"
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000"
 });
 
 API.interceptors.request.use((req) => {

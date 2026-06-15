@@ -2,8 +2,9 @@
 Test script to verify CDSCO integration in verification pipeline
 """
 import asyncio
+import os
 import sys
-sys.path.insert(0, 'backend')
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.services.cdsco_verification_service import verify_manufacturer, get_cdsco_statistics
 
