@@ -3,7 +3,7 @@ from collections import defaultdict
 from bson import ObjectId
 
 
-async def detect_corruption_patterns():
+async def detect_corruption_patterns(supplies_list=None, suppliers_list=None):
     """Detect corruption patterns in supply chain data.
     
     Returns:
@@ -17,17 +17,22 @@ async def detect_corruption_patterns():
 
     flags = []
 
-    # Get blacklisted suppliers
-    async for supplier in db.suppliers.find({"blacklisted": True}):
-        blacklisted_suppliers.add(str(supplier["_id"]))
-        supplier_names[str(supplier["_id"])] = supplier.get("name", "Unknown")
+    if suppliers_list is None:
+        suppliers_list = await db.suppliers.find().to_list(length=None)
 
-    # Get all supplier names
-    async for supplier in db.suppliers.find():
-        supplier_names[str(supplier["_id"])] = supplier.get("name", "Unknown")
+    for supplier in suppliers_list:
+        s_id = str(supplier["_id"])
+        supplier_names[s_id] = supplier.get("name", "Unknown")
+        if supplier.get("blacklisted"):
+            blacklisted_suppliers.add(s_id)
+
+    if supplies_list is None:
+        supplies_list = await db.supplies.find({"is_deleted": {"$ne": True}}).to_list(length=None)
 
     # Analyze supply patterns
-    async for s in db.supplies.find({"is_deleted": {"$ne": True}}):
+    for s in supplies_list:
+        if s.get("is_deleted") is True:
+            continue
         supplier_id = str(s.get("supplier_id"))
         batch = s.get("batch_number")
         status = s.get("compliance_status")

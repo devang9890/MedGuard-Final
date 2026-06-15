@@ -16,6 +16,20 @@ from app.api.routes.public_verify_routes import router as public_verify_router
 
 app = FastAPI(title="MedGuard AI Backend")
 
+@app.on_event("startup")
+async def startup_db_client():
+    from app.db.mongodb import db
+    try:
+        await db.supplies.create_index("supplier_id")
+        await db.supplies.create_index("medicine_id")
+        await db.supplies.create_index("compliance_status")
+        await db.supplies.create_index("expiry_date")
+        await db.supplies.create_index("is_fake")
+        await db.supplies.create_index("is_deleted")
+        print("Database indexes created successfully.")
+    except Exception as e:
+        print(f"Error creating indexes: {e}")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

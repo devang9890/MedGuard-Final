@@ -13,12 +13,34 @@ router = APIRouter()
 
 @router.get("/dashboard")
 async def dashboard_analytics():
-    total = await db.supplies.count_documents({})
-    accepted = await db.supplies.count_documents({"compliance_status": "ACCEPTED"})
-    rejected = await db.supplies.count_documents({"compliance_status": "REJECTED"})
-    warnings = await db.supplies.count_documents({
-        "risk_flags": {"$exists": True, "$ne": []}
-    })
+    # Run counts in a single aggregation pipeline using $facet to avoid multiple round-trips
+    facet_pipeline = [
+        {
+            "$facet": {
+                "total": [{"$count": "count"}],
+                "accepted": [
+                    {"$match": {"compliance_status": "ACCEPTED"}},
+                    {"$count": "count"}
+                ],
+                "rejected": [
+                    {"$match": {"compliance_status": "REJECTED"}},
+                    {"$count": "count"}
+                ],
+                "warnings": [
+                    {"$match": {"risk_flags": {"$exists": True, "$ne": []}}},
+                    {"$count": "count"}
+                ]
+            }
+        }
+    ]
+    
+    facet_results = await db.supplies.aggregate(facet_pipeline).to_list(length=1)
+    facet_data = facet_results[0] if facet_results else {}
+    
+    total = facet_data.get("total", [{}])[0].get("count", 0) if facet_data.get("total") else 0
+    accepted = facet_data.get("accepted", [{}])[0].get("count", 0) if facet_data.get("accepted") else 0
+    rejected = facet_data.get("rejected", [{}])[0].get("count", 0) if facet_data.get("rejected") else 0
+    warnings = facet_data.get("warnings", [{}])[0].get("count", 0) if facet_data.get("warnings") else 0
 
     near_expiry_date = datetime.utcnow() + timedelta(days=30)
 
@@ -135,14 +157,74 @@ async def dashboard_analytics():
 @router.get("/ai-insights")
 async def get_ai_insights():
     """Aggregate all AI intelligence signals into single dashboard view."""
+    from collections import defaultdict
     
-    # 1. Get high-risk suppliers with trust scores
+    # 1. Fetch all datasets into memory once to prevent N+1 database queries
+    suppliers_list = await db.suppliers.find().to_list(length=None)
+    supplies_list = await db.supplies.find().to_list(length=None)
+    medicines_list = await db.medicines.find().to_list(length=None)
+    
+    # Create fast in-memory lookup tables
+    suppliers_dict = {str(s["_id"]): s for s in suppliers_list}
+    medicines_dict = {str(m["_id"]): m for m in medicines_list}
+    
+    # Group supplies by supplier_id for in-memory score calculation
+    supplies_by_supplier = defaultdict(list)
+    for s in supplies_list:
+        if s.get("is_deleted") is not True:
+            supplies_by_supplier[str(s.get("supplier_id"))].append(s)
+            
+    # Helper to compute supplier score in memory
+    def compute_supplier_score_in_memory(supplies):
+        total = len(supplies)
+        rejected = sum(1 for s in supplies if s.get("compliance_status") == "REJECTED")
+        warnings = sum(1 for s in supplies if s.get("risk_flags"))
+        fake = sum(1 for s in supplies if s.get("fake_status") == "FAKE")
+        
+        if total == 0:
+            return {
+                "score": 100,
+                "risk_level": "LOW",
+                "rejection_rate": 0,
+                "warning_rate": 0,
+                "fake_item_rate": 0
+            }
+            
+        rejection_rate = rejected / total
+        warning_rate = warnings / total
+        fake_rate = fake / total
+        
+        score = 100 - (
+            rejection_rate * 40 +
+            warning_rate * 30 +
+            fake_rate * 30
+        ) * 100
+        score = max(0, int(score))
+        
+        if score > 75:
+            risk = "LOW"
+        elif score > 40:
+            risk = "MEDIUM"
+        else:
+            risk = "HIGH"
+            
+        return {
+            "score": score,
+            "risk_level": risk,
+            "rejection_rate": round(rejection_rate * 100, 1),
+            "warning_rate": round(warning_rate * 100, 1),
+            "fake_item_rate": round(fake_rate * 100, 1)
+        }
+
+    # 1. Get high-risk suppliers with trust scores (calculated in memory)
     high_risk_suppliers = []
-    async for supplier in db.suppliers.find():
-        score = await calculate_supplier_score(str(supplier["_id"]))
+    for supplier in suppliers_list:
+        s_id = str(supplier["_id"])
+        supplier_supplies = supplies_by_supplier.get(s_id, [])
+        score = compute_supplier_score_in_memory(supplier_supplies)
         if score.get("risk_level") in ["MEDIUM", "HIGH"]:
             high_risk_suppliers.append({
-                "supplier_id": str(supplier["_id"]),
+                "supplier_id": s_id,
                 "name": supplier.get("name", "Unknown"),
                 "email": supplier.get("email", ""),
                 "trust_score": score.get("score", 0),
@@ -156,11 +238,14 @@ async def get_ai_insights():
     high_risk_suppliers.sort(key=lambda x: (x["risk_level"] != "HIGH", -x["trust_score"]))
     high_risk_suppliers = high_risk_suppliers[:10]  # Top 10
     
-    # 2. Get fake medicine detections
+    # 2. Get fake medicine detections (filtered in memory)
     fake_medicines = []
-    async for supply in db.supplies.find({"is_fake": True, "is_deleted": {"$ne": True}}):
-        medicine_doc = await db.medicines.find_one({"_id": supply.get("medicine_id")})
-        supplier_doc = await db.suppliers.find_one({"_id": supply.get("supplier_id")})
+    fake_supplies = [s for s in supplies_list if s.get("is_fake") is True and s.get("is_deleted") is not True]
+    for supply in fake_supplies:
+        med_id = str(supply.get("medicine_id", ""))
+        sup_id = str(supply.get("supplier_id", ""))
+        medicine_doc = medicines_dict.get(med_id)
+        supplier_doc = suppliers_dict.get(sup_id)
         
         fake_medicines.append({
             "supply_id": str(supply["_id"]),
@@ -173,28 +258,28 @@ async def get_ai_insights():
     
     fake_medicines = fake_medicines[:10]  # Top 10
     
-    # 3. Get anomalies
-    anomaly_result = await run_anomaly_detection()
+    # 3. Get anomalies (calculated using in-memory list)
+    anomaly_result = await run_anomaly_detection(supplies_list)
     anomalies = []
     if anomaly_result.get("anomalies"):
+        # Create a fast lookup for supplies
+        supplies_dict = {str(s["_id"]): s for s in supplies_list}
         for anomaly_id in anomaly_result["anomalies"][:10]:
-            try:
-                supply = await db.supplies.find_one({"_id": ObjectId(anomaly_id)})
-                if supply:
-                    medicine_doc = await db.medicines.find_one({"_id": supply.get("medicine_id")})
-                    anomalies.append({
-                        "supply_id": str(supply["_id"]),
-                        "medicine": medicine_doc.get("name", "Unknown") if medicine_doc else "Unknown",
-                        "temperature": supply.get("temperature", "N/A"),
-                        "quantity": supply.get("quantity", "N/A"),
-                        "detected_at": supply.get("created_at", datetime.utcnow()).isoformat(),
-                        "severity": "WARNING"
-                    })
-            except:
-                pass
+            supply = supplies_dict.get(anomaly_id)
+            if supply:
+                med_id = str(supply.get("medicine_id", ""))
+                medicine_doc = medicines_dict.get(med_id)
+                anomalies.append({
+                    "supply_id": anomaly_id,
+                    "medicine": medicine_doc.get("name", "Unknown") if medicine_doc else "Unknown",
+                    "temperature": supply.get("temperature", "N/A"),
+                    "quantity": supply.get("quantity", "N/A"),
+                    "detected_at": supply.get("created_at", datetime.utcnow()).isoformat(),
+                    "severity": "WARNING"
+                })
     
-    # 4. Get corruption flags
-    corruption_result = await detect_corruption_patterns()
+    # 4. Get corruption flags (calculated in memory)
+    corruption_result = await detect_corruption_patterns(supplies_list, suppliers_list)
     corruption_flags = []
     flags_list = corruption_result.get("flags", []) if isinstance(corruption_result, dict) else corruption_result
     for flag in flags_list[:10]:  # Top 10
@@ -206,15 +291,13 @@ async def get_ai_insights():
             "severity": flag.get("severity", "MEDIUM")
         })
     
-    # 5. Get priority usage recommendations
-    priority_result = await calculate_priority()
+    # 5. Get priority usage recommendations (calculated in memory)
+    priority_result = await calculate_priority(supplies_list)
     priority_usage = []
     for item in priority_result[:15]:  # Top 15
         if item.get("recommendation") in ["USE_IMMEDIATELY", "USE_SOON"]:
-            try:
-                medicine_doc = await db.medicines.find_one({"_id": ObjectId(item.get("medicine_id"))}) if item.get("medicine_id") else None
-            except:
-                medicine_doc = None
+            med_id = str(item.get("medicine_id", ""))
+            medicine_doc = medicines_dict.get(med_id)
             priority_usage.append({
                 "supply_id": str(item.get("supply_id", "")),
                 "medicine": medicine_doc.get("name", "Unknown") if medicine_doc else "Unknown",

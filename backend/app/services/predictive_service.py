@@ -2,7 +2,7 @@ from app.db.mongodb import db
 from datetime import datetime
 
 
-async def calculate_priority():
+async def calculate_priority(supplies_list=None):
     """Calculate priority scores for all supplies.
     
     Scoring factors:
@@ -20,7 +20,12 @@ async def calculate_priority():
     """
     results = []
 
-    async for s in db.supplies.find({"is_deleted": {"$ne": True}}):
+    if supplies_list is None:
+        supplies_list = await db.supplies.find({"is_deleted": {"$ne": True}}).to_list(length=None)
+
+    for s in supplies_list:
+        if s.get("is_deleted") is True:
+            continue
         score = 0
 
         # Expiry factor
