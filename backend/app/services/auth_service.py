@@ -42,4 +42,4 @@ async def login_user(user):
         print(f"Login error: {str(e)}")
         import traceback
         traceback.print_exc()
-        return None
+        raise e
